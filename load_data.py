@@ -3,15 +3,17 @@ import pymysql
 
 # Database connection details
 host = 'localhost'
-user = 'your_username'
-password = 'your_password'
-database = 'your_database'
+user = 'root'
+password = 'Nn021099!'
+database = 'food_recommandation'
 
-# CSV file path
-csv_file_path = 'path_to_your_file.csv'
+
 
 # Connect to the database
 connection = pymysql.connect(host=host, user=user, password=password, database=database)
+
+# CSV file path
+small_ = r'C:\Users\kashann\PycharmProjects\NutriTrack\FoodDataSmall.csv'
 
 try:
     # Read the CSV file into a DataFrame
