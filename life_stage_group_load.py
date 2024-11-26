@@ -1,6 +1,5 @@
 import pandas as pd
 import pymysql
-import csv
 
 # Database connection details
 host = 'localhost'
@@ -15,7 +14,6 @@ cursor = connection.cursor()
 try:
     csv_file_path = r'C:\Users\kashann\PycharmProjects\NutriTrack\life_stage_group.csv'
     df_life_stage = pd.read_csv(csv_file_path)
-    # Convert min_age and max_age to integers (TINYINT)
     df_life_stage['min_age'] = df_life_stage['min_age'].astype(int)
     df_life_stage['max_age'] = df_life_stage['max_age'].astype(int)
 
@@ -30,12 +28,12 @@ try:
 
     insert_query = """
         INSERT INTO life_stage_group_daily_recommand 
-        (subgroup, min_age, max_age, Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, 
+        (gender, subgroup, min_age, max_age, Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, 
         Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg, Pantothenic_acid_mg) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
     for index, row in df_life_stage.iterrows():
-        cursor.execute(insert_query, (
+        cursor.execute(insert_query, (row['gender'],
         row['subgroup'], row['min_age'], row['max_age'], row['Vitamin_A_mg'], row['Vitamin_C_mg'], row['Vitamin_D_mg'],
         row['Vitamin_E_mg'], row['Vitamin_K_mg'], row['Thiamin_mg'], row['Riboflavin_mg'], row['Niacin_mg'],
         row['Vitamin_B6_mg'], row['Vitamin_B12_mg'], row['Pantothenic_acid_mg']
@@ -50,3 +48,5 @@ finally:
     # Close the cursor and connection
     cursor.close()
     connection.close()
+
+
