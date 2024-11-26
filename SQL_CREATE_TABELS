@@ -1,4 +1,5 @@
 CREATE TABLE life_stage_group_daily_recommand(
+	gender VARCHAR(50) NOT NULL,
     subgroup VARCHAR(50) NOT NULL,                -- Age subgroup as a string (e.g., "Teen", "Adult")
     min_age TINYINT NOT NULL,                          -- Minimum age for the subgroup
     max_age TINYINT NOT NULL,  
@@ -13,24 +14,28 @@ CREATE TABLE life_stage_group_daily_recommand(
     Vitamin_B6_mg DECIMAL(8, 4) NOT NULL,  -- Vitamin B6 in mg
     Vitamin_B12_mg DECIMAL(8, 4) NOT NULL,  -- Vitamin B12 in mg
     Pantothenic_acid_mg DECIMAL(8, 4) NOT NULL,  -- Pantothenic Acid (Vitamin B5) in mg
-    PRIMARY KEY (subgroup, min_age, max_age)  -- Composite primary key
+    PRIMARY KEY (gender, subgroup, min_age, max_age)  -- Composite primary key
 );
 
 CREATE TABLE user_profile (
-    user_id INT PRIMARY KEY,        -- Unique identifier for each user
+    user_id INT PRIMARY KEY auto_increment,        -- Unique identifier for each user
     age TINYINT NOT NULL,                              -- User's age
-    subgroup VARCHAR(50) NOT NULL,                -- Age subgroup as a string (e.g., "Teen", "Adult")
+    subgroup VARCHAR(50) NOT NULL,                -- Age subgroup (Children, Infants, Male, Female, Pregnancy, Lactation)
+    gender VARCHAR(50) NOT NULL,
     min_age TINYINT NOT NULL,                          -- Minimum age for the subgroup
     max_age TINYINT NOT NULL,                          -- Maximum age for the subgroup
     weight DECIMAL(8, 4) NOT NULL,                 -- User's weight in kg (e.g., 70.5)
     height DECIMAL(8, 4) NOT NULL,                 -- User's height in cm (e.g., 175.2)
+    activity_level ENUM('Sedentary', 'Lightly active', 'Moderately active', 'Very active', 'Extra active') NOT NULL, -- Activity leve
     desired_calories SMALLINT NOT NULL,                 -- Desired daily calorie intake
-    FOREIGN KEY (subgroup, min_age, max_age) 
-    REFERENCES life_stage_group_daily_recommand(subgroup, min_age, max_age) 
+    FOREIGN KEY (gender,subgroup, min_age, max_age) 
+    REFERENCES life_stage_group_daily_recommand(gender, subgroup, min_age, max_age) 
+	ON DELETE CASCADE 
+	ON UPDATE CASCADE
 );
 
 CREATE TABLE food (
-    food_name VARCHAR(255) NOT NULL, -- Name or type of food
+    food_name VARCHAR(255) NOT NULL, -- Name or type of foodlife_stage_group_daily_recommand
     Caloric_Value_kcal smallint unsigned NOT NULL, -- Energy in kcal per 100 grams
     Protein_g DECIMAL(8, 4), -- Proteins in grams
     Dietary_Fiber_g DECIMAL(8, 4), -- Fiber content in grams	
@@ -66,8 +71,10 @@ CREATE TABLE eat (
     user_id INT , 
     index_of_eaten INT PRIMARY KEY auto_increment,   
     date_of_eat DATETIME,
-    FOREIGN KEY (food_name) REFERENCES food (food_name),
+    FOREIGN KEY (food_name) REFERENCES food (food_name) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (user_id) REFERENCES user_profile (user_id)
+    ON DELETE CASCADE 
+	ON UPDATE CASCADE
 );
 
 CREATE TABLE team (
@@ -79,6 +86,74 @@ CREATE TABLE Belong_Team (
     team_id INT,
     user_id INT,
     connection_index INT PRIMARY KEY auto_increment,
-    FOREIGN KEY (team_id) REFERENCES team (team_id),
-    FOREIGN KEY (user_id) REFERENCES user_profile (user_id)
+    FOREIGN KEY (team_id) REFERENCES team (team_id)         ON DELETE CASCADE 
+        ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_profile (user_id)         ON DELETE CASCADE 
+        ON UPDATE CASCADE
 );
+
+
+
+DELIMITER $$
+CREATE TRIGGER calculate_desired_calories
+BEFORE INSERT ON user_profile
+FOR EACH ROW
+BEGIN
+    DECLARE bmr DECIMAL(10, 2);
+    -- Handle Infants case
+    IF NEW.subgroup = 'Infants' THEN
+        SET NEW.desired_calories = ROUND((89 * NEW.weight) - 100); -- Example for infants
+    ELSEIF NEW.age BETWEEN 1 AND 18 THEN
+        -- Handle Children case using Schofield Equation for BMR
+        IF NEW.gender = 'Male' THEN
+            IF NEW.age BETWEEN 1 AND 3 THEN
+                SET bmr = (22.6 * NEW.weight) + 495;  -- For 1-3 years old boys
+            ELSEIF NEW.age BETWEEN 4 AND 6 THEN
+                SET bmr = (17.5 * NEW.weight) + 651;  -- For 4-6 years old boys
+            ELSE
+                SET bmr = (17.5 * NEW.weight) + 651;  -- Default for other age ranges, adjust as needed
+            END IF;
+        ELSEIF NEW.gender = 'Female' THEN
+            IF NEW.age BETWEEN 1 AND 3 THEN
+                SET bmr = (22.5 * NEW.weight) + 499;  -- For 1-3 years old girls
+            ELSEIF NEW.age BETWEEN 4 AND 6 THEN
+                SET bmr = (20 * NEW.weight) + 567;   -- For 4-6 years old girls
+            ELSE
+                SET bmr = (20 * NEW.weight) + 567;   -- Default for other age ranges, adjust as needed
+            END IF;
+        END IF;
+
+        -- Adjust for activity level
+        CASE NEW.activity_level
+            WHEN 'Sedentary' THEN SET NEW.desired_calories = ROUND(bmr * 1.2);
+            WHEN 'Lightly active' THEN SET NEW.desired_calories = ROUND(bmr * 1.375);
+            WHEN 'Moderately active' THEN SET NEW.desired_calories = ROUND(bmr * 1.55);
+            WHEN 'Very active' THEN SET NEW.desired_calories = ROUND(bmr * 1.725);
+            WHEN 'Extra active' THEN SET NEW.desired_calories = ROUND(bmr * 1.9);
+        END CASE;
+
+    ELSE
+        -- Handle Adults and Others based on Mifflin-St Jeor Equation
+        IF NEW.gender = 'Male' THEN
+            SET bmr = (10 * NEW.weight) + (6.25 * NEW.height) - (5 * NEW.age) + 5;
+        ELSEIF NEW.gender = 'Female' THEN
+            SET bmr = (10 * NEW.weight) + (6.25 * NEW.height) - (5 * NEW.age) - 161;
+        END IF;
+
+        -- Adjust for activity level
+        CASE NEW.activity_level
+            WHEN 'Sedentary' THEN SET NEW.desired_calories = ROUND(bmr * 1.2);
+            WHEN 'Lightly active' THEN SET NEW.desired_calories = ROUND(bmr * 1.375);
+            WHEN 'Moderately active' THEN SET NEW.desired_calories = ROUND(bmr * 1.55);
+            WHEN 'Very active' THEN SET NEW.desired_calories = ROUND(bmr * 1.725);
+            WHEN 'Extra active' THEN SET NEW.desired_calories = ROUND(bmr * 1.9);
+        END CASE;
+
+        -- Handle Pregnancy case for women
+        IF NEW.subgroup = 'Lactation' OR NEW.subgroup = 'Pregnancy' THEN
+			 SET NEW.desired_calories = NEW.desired_calories + 450;
+        END IF;
+    END IF;
+END$$
+
+DELIMITER ;
