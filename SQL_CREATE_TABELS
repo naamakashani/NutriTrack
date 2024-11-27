@@ -3,29 +3,30 @@ CREATE TABLE life_stage_group_daily_recommand(
     subgroup VARCHAR(50) NOT NULL,                -- Age subgroup as a string (e.g., "Teen", "Adult")
     min_age TINYINT NOT NULL,                          -- Minimum age for the subgroup
     max_age TINYINT NOT NULL,  
-    Vitamin_A_mg DECIMAL(8, 4) NOT NULL,  -- Vitamin A in mg
-    Vitamin_C_mg DECIMAL(8, 4) NOT NULL,  -- Vitamin C in mg
-    Vitamin_D_mg DECIMAL(8, 4) NOT NULL,  -- Vitamin D in mg
-    Vitamin_E_mg DECIMAL(8, 4) NOT NULL,  -- Vitamin E in mg
-    Vitamin_K_mg DECIMAL(8, 4) NOT NULL,  -- Vitamin K in mg
-    Thiamin_mg DECIMAL(8, 4) NOT NULL,  -- Thiamine (Vitamin B1) in mg
-    Riboflavin_mg DECIMAL(8, 4) NOT NULL,  -- Riboflavin (Vitamin B2) in mg
-    Niacin_mg DECIMAL(8, 4) NOT NULL,  -- Niacin (Vitamin B3) in mg
-    Vitamin_B6_mg DECIMAL(8, 4) NOT NULL,  -- Vitamin B6 in mg
-    Vitamin_B12_mg DECIMAL(8, 4) NOT NULL,  -- Vitamin B12 in mg
-    Pantothenic_acid_mg DECIMAL(8, 4) NOT NULL,  -- Pantothenic Acid (Vitamin B5) in mg
+    Vitamin_A_mg DECIMAL(12, 4) NOT NULL,  -- Vitamin A in mg
+    Vitamin_C_mg DECIMAL(12, 4) NOT NULL,  -- Vitamin C in mg
+    Vitamin_D_mg DECIMAL(12, 4) NOT NULL,  -- Vitamin D in mg
+    Vitamin_E_mg DECIMAL(12, 4) NOT NULL,  -- Vitamin E in mg
+    Vitamin_K_mg DECIMAL(12, 4) NOT NULL,  -- Vitamin K in mg
+    Thiamin_mg DECIMAL(12, 4) NOT NULL,  -- Thiamine (Vitamin B1) in mg
+    Riboflavin_mg DECIMAL(12, 4) NOT NULL,  -- Riboflavin (Vitamin B2) in mg
+    Niacin_mg DECIMAL(12, 4) NOT NULL,  -- Niacin (Vitamin B3) in mg
+    Vitamin_B6_mg DECIMAL(12, 4) NOT NULL,  -- Vitamin B6 in mg
+    Vitamin_B12_mg DECIMAL(12, 4) NOT NULL,  -- Vitamin B12, in mg
+    Pantothenic_acid_mg DECIMAL(12, 4) NOT NULL,  -- Pantothenic Acid (Vitamin B5) in mg
     PRIMARY KEY (gender, subgroup, min_age, max_age)  -- Composite primary key
 );
 
 CREATE TABLE user_profile (
-    user_id INT PRIMARY KEY auto_increment,        -- Unique identifier for each user
+    user_id INT PRIMARY KEY,        -- Unique identifier for each user
     age TINYINT NOT NULL,                              -- User's age
     subgroup VARCHAR(50) NOT NULL,                -- Age subgroup (Children, Infants, Male, Female, Pregnancy, Lactation)
+    username VARCHAR(50) NOT NULL,
     gender VARCHAR(50) NOT NULL,
     min_age TINYINT NOT NULL,                          -- Minimum age for the subgroup
     max_age TINYINT NOT NULL,                          -- Maximum age for the subgroup
-    weight DECIMAL(8, 4) NOT NULL,                 -- User's weight in kg (e.g., 70.5)
-    height DECIMAL(8, 4) NOT NULL,                 -- User's height in cm (e.g., 175.2)
+    weight DECIMAL(12, 4) NOT NULL,                 -- User's weight in kg (e.g., 70.5)
+    height DECIMAL(12, 4) NOT NULL,                 -- User's height in cm (e.g., 175.2)
     activity_level ENUM('Sedentary', 'Lightly active', 'Moderately active', 'Very active', 'Extra active') NOT NULL, -- Activity leve
     desired_calories SMALLINT NOT NULL,                 -- Desired daily calorie intake
     FOREIGN KEY (gender,subgroup, min_age, max_age) 
@@ -35,37 +36,38 @@ CREATE TABLE user_profile (
 CREATE TABLE food (
     food_name VARCHAR(255) NOT NULL, -- Name or type of foodlife_stage_group_daily_recommand
     Caloric_Value_kcal smallint unsigned NOT NULL, -- Energy in kcal per 100 grams
-    Protein_g DECIMAL(8, 4), -- Proteins in grams
-    Dietary_Fiber_g DECIMAL(8, 4), -- Fiber content in grams	
-    Cholesterol_mg DECIMAL(8, 4), -- Cholesterol in milligrams
-    Sodium_g DECIMAL(8, 4), -- Sodium in grams
-    Water_g DECIMAL(8, 4), -- Water content in grams
-    Vitamin_A_mg DECIMAL(8, 4), -- Vitamin A mg
-    Thiamin_mg DECIMAL(8, 4), -- Vitamin B1 (Thiamine) in mg
-    Folic_acid_mg DECIMAL(8, 4), -- Vitamin B11 (Folic Acid) in mg
-    Vitamin_B12_mg DECIMAL(8, 4), -- Vitamin B12 in mg
-    Riboflavin_mg DECIMAL(8, 4), -- Vitamin B2 (Riboflavin) in mg
-    Niacin_mg DECIMAL(8, 4), -- Vitamin B3 (Niacin) in mg
-    Pantothenic_acid_mg DECIMAL(8, 4), -- Vitamin B5 (Pantothenic Acid) in mg
-    Vitamin_B6_mg DECIMAL(8, 4), -- Vitamin B6 in mg
-    Vitamin_C_mg DECIMAL(8, 4), -- Vitamin C in mg
-    Vitamin_D_mg DECIMAL(8, 4), -- Vitamin D in mg
-    Vitamin_E_mg DECIMAL(8, 4), -- Vitamin E in mg
-    Vitamin_K_mg DECIMAL(8, 4), -- Vitamin K in mg
-    Calcium_mg DECIMAL(8, 4), -- Calcium in mg
-    Copper_mg DECIMAL(8, 4), -- Copper in mg
-    Iron_mg DECIMAL(8, 4), -- Iron in mg
-    Magnesium_mg DECIMAL(8, 4), -- Magnesium in mg
-    Manganese_mg DECIMAL(8, 4), -- Manganese in mg
-    Phosphorus_mg DECIMAL(8, 4), -- Phosphorus in mg
-    Potassium_mg DECIMAL(8, 4), -- Potassium in mg
-    Selenium_mg DECIMAL(8, 4), -- Selenium in mg
-    Zinc_mg DECIMAL(8, 4), -- Zinc in mg
+    Protein_g DECIMAL(12, 4), -- Proteins in grams
+    Dietary_Fiber_g DECIMAL(12, 4), -- Fiber content in grams	
+    Cholesterol_mg DECIMAL(12, 4), -- Cholesterol in milligrams
+    Sodium_g DECIMAL(12, 4), -- Sodium in grams
+    Water_g DECIMAL(12, 4), -- Water content in grams
+    Vitamin_A_mg DECIMAL(12, 4), -- Vitamin A mg
+    Thiamin_mg DECIMAL(12, 4), -- Vitamin B1 (Thiamine) in mg
+    Folic_acid_mg DECIMAL(12, 4), -- Vitamin B11 (Folic Acid) in mg
+    Vitamin_B12_mg DECIMAL(12, 4), -- Vitamin B12, in mg
+    Riboflavin_mg DECIMAL(12, 4), -- Vitamin B2 (Riboflavin) in mg
+    Niacin_mg DECIMAL(12, 4), -- Vitamin B3 (Niacin) in mg
+    Pantothenic_acid_mg DECIMAL(12, 4), -- Vitamin B5 (Pantothenic Acid) in mg
+    Vitamin_B6_mg DECIMAL(12, 4), -- Vitamin B6 in mg
+    Vitamin_C_mg DECIMAL(12, 4), -- Vitamin C in mg
+    Vitamin_D_mg DECIMAL(12, 4), -- Vitamin D in mg
+    Vitamin_E_mg DECIMAL(12, 4), -- Vitamin E in mg
+    Vitamin_K_mg DECIMAL(12, 4), -- Vitamin K in mg
+    Calcium_mg DECIMAL(12, 4), -- Calcium in mg
+    Copper_mg DECIMAL(12, 4), -- Copper in mg
+    Iron_mg DECIMAL(12, 4), -- Iron in mg
+    Magnesium_mg DECIMAL(12, 4), -- Magnesium in mg
+    Manganese_mg DECIMAL(12, 4), -- Manganese in mg
+    Phosphorus_mg DECIMAL(12, 4), -- Phosphorus in mg
+    Potassium_mg DECIMAL(12, 4), -- Potassium in mg
+    Selenium_mg DECIMAL(12, 4), -- Selenium in mg
+    Zinc_mg DECIMAL(12, 4), -- Zinc in mg
     PRIMARY KEY (food_name) -- Food_Name as a unique identifier 
 );
 
 CREATE TABLE eat (
     food_name VARCHAR(50) NOT NULL,
+    amount smallint NOT NULL,
     user_id INT , 
     index_of_eaten INT PRIMARY KEY auto_increment,   
     date_of_eat DATETIME,
@@ -83,7 +85,12 @@ CREATE TABLE Belong_Team (
     user_id INT,
     connection_index INT PRIMARY KEY auto_increment,
     FOREIGN KEY (team_id) REFERENCES team (team_id),
-    FOREIGN KEY (user_id) REFERENCES user_profile (user_id) 
+    FOREIGN KEY (user_id) REFERENCES user_profile (user_id)
+    
+    
+    
+    
+    
 );
 
 
