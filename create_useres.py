@@ -13,7 +13,6 @@ cursor = connection.cursor()
 
 
 def create_users():
-    # Creating additional data with more Adults
     data = [
         ['Male', 0.8, 'Infants', 7.2, 68, 'Sedentary'],
         ['Female', 4, 'Children', 18, 105, 'Lightly active'],
