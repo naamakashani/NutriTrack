@@ -30,8 +30,6 @@ CREATE TABLE user_profile (
     desired_calories SMALLINT NOT NULL,                 -- Desired daily calorie intake
     FOREIGN KEY (gender,subgroup, min_age, max_age) 
     REFERENCES life_stage_group_daily_recommand(gender, subgroup, min_age, max_age) 
-	ON DELETE CASCADE 
-	ON UPDATE CASCADE
 );
 
 CREATE TABLE food (
@@ -71,10 +69,8 @@ CREATE TABLE eat (
     user_id INT , 
     index_of_eaten INT PRIMARY KEY auto_increment,   
     date_of_eat DATETIME,
-    FOREIGN KEY (food_name) REFERENCES food (food_name) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (food_name) REFERENCES food (food_name),
     FOREIGN KEY (user_id) REFERENCES user_profile (user_id)
-    ON DELETE CASCADE 
-	ON UPDATE CASCADE
 );
 
 CREATE TABLE team (
@@ -86,10 +82,8 @@ CREATE TABLE Belong_Team (
     team_id INT,
     user_id INT,
     connection_index INT PRIMARY KEY auto_increment,
-    FOREIGN KEY (team_id) REFERENCES team (team_id)         ON DELETE CASCADE 
-        ON UPDATE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES user_profile (user_id)         ON DELETE CASCADE 
-        ON UPDATE CASCADE
+    FOREIGN KEY (team_id) REFERENCES team (team_id),
+    FOREIGN KEY (user_id) REFERENCES user_profile (user_id) 
 );
 
 
