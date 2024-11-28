@@ -23,13 +23,10 @@ def load_food_data_big():
         # Step 1: Load and preprocess CSV 1
         df_big = pd.read_csv(food_data_big_csv)
 
-        # Step 2: Load and preprocess CSV 2
-        df_small = pd.read_csv(food_data_small_csv)
-
-        # Step 3: Handle missing values - Replace 'NaN' with None
+        # Step 2: Handle missing values - Replace 'NaN' with None
         df_big.loc[df_big['name'].isna(), 'name'] = None
 
-        # Step 4: Insert data row by row
+        # Step 3: Insert data row by row
         insert_query = "INSERT IGNORE INTO food (food_name, Caloric_Value_kcal, Protein_g, Dietary_Fiber_g, Cholesterol_mg, Sodium_g" \
                     ", Water_g, Vitamin_A_mg, Thiamin_mg, Folic_acid_mg, Vitamin_B12_mg, Riboflavin_mg, Niacin_mg, Pantothenic_acid_mg" \
                     ", Vitamin_B6_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, Calcium_mg, Copper_mg, Iron_mg" \
@@ -47,7 +44,7 @@ def load_food_data_big():
         # Commit the changes
         connection.commit()
         print("Data inserted successfully.")
-        # Step 5: Delete rows with NULL in the 'food_name' column
+        # Step 4: Delete rows with NULL in the 'food_name' column
         delete_query = "DELETE FROM food WHERE food_name IS NULL;"
         cursor.execute(delete_query)
         connection.commit()
@@ -136,7 +133,80 @@ def convert_scale():
 
     print("Data scale conversion completed successfully.")
 
+def load_food_data_small():
+    # Database connection details
+    host = 'localhost'
+    user = 'root'
+    password = 'shachar100'
+    database = 'food_recommandation'
+
+    # Paths to your CSV files
+    food_data_small_csv = 'FoodDataSmall.csv'
+
+    # Connect to the database
+    connection = pymysql.connect(host=host, user=user, password=password, database=database)
+    cursor = connection.cursor()
+
+    try:
+        # Load and preprocess CSV 2
+        df_small = pd.read_csv(food_data_small_csv)
+
+        # Convert all numeric columns to numeric type, invalid parsing will be set as NaN
+        numeric_columns = [
+            'Caloric Value', 'Protein', 'Dietary Fiber', 'Cholesterol', 'Sodium', 'Water', 'Vitamin A',
+            'Vitamin B1', 'Vitamin B11', 'Vitamin B12', 'Vitamin B2', 'Vitamin B3', 'Vitamin B5', 'Vitamin B6',
+            'Vitamin C', 'Vitamin D', 'Vitamin E', 'Vitamin K', 'Calcium', 'Copper', 'Iron', 'Magnesium',
+            'Manganese', 'Phosphorus', 'Potassium', 'Selenium', 'Zinc'
+        ]
+
+        # # Ensure that these columns are converted to float, coercing errors to NaN
+        # df_small[numeric_columns] = df_small[numeric_columns].apply(pd.to_numeric, errors='coerce')
+
+        # Round all float values to 6 decimal places to avoid scientific notation
+        #df_small[numeric_columns] = df_small[numeric_columns].round(6)
+
+        # # Step 3: Handle missing values - Replace 'NaN' with None
+        # df_big.loc[df_big['name'].isna(), 'name'] = None
+
+        # Step 4: Insert data row by row
+        insert_query = """
+            INSERT IGNORE INTO food (
+                food_name, Caloric_Value_kcal, Protein_g, Dietary_Fiber_g, Cholesterol_mg, Sodium_g, Water_g, Vitamin_A_mg,
+                Thiamin_mg, Folic_acid_mg, Vitamin_B12_mg, Riboflavin_mg, Niacin_mg, Pantothenic_acid_mg, Vitamin_B6_mg,
+                Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, Calcium_mg, Copper_mg, Iron_mg, Magnesium_mg,
+                Manganese_mg, Phosphorus_mg, Potassium_mg, Selenium_mg, Zinc_mg
+            ) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        # Iterate over each row in the dataframe and insert into the table
+        for index, row in df_small.iterrows():
+            cursor.execute(insert_query, (
+                row['food'], row['Caloric Value'], row['Protein'], row['Dietary Fiber'],
+                row['Cholesterol'],
+                row['Sodium'], row['Water'], row['Vitamin A'], row['Vitamin B1'], row['Vitamin B11'],
+                row['Vitamin B12'],
+                row['Vitamin B2'], row['Vitamin B3'], row['Vitamin B5'], row['Vitamin B6'],
+                row['Vitamin C'],
+                row['Vitamin D'], row['Vitamin E'], row['Vitamin K'], row['Calcium'], row['Copper'],
+                row['Iron'],
+                row['Magnesium'], row['Manganese'], row['Phosphorus'], row['Potassium'], row['Selenium'],
+                row['Zinc']
+            ))
+
+        # Commit the changes
+        connection.commit()
+        print("Data inserted successfully.")
+    except Exception as e:
+        print("An error occurred:", e)
+        connection.rollback()  # Rollback in case of error
+    finally:
+        # Close the cursor and connection
+        cursor.close()
+        connection.close()
+
 # main
 if __name__ == '__main__':
-    load_food_data_big()
-    convert_scale()
+    #load_food_data_big()
+    #convert_scale()
+    load_food_data_small()
