@@ -3,7 +3,7 @@ def connect_to_db():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'Nn021099!'
+    password = 'shachar100'
     database = 'food_recommandation'
 
     try:
@@ -22,7 +22,7 @@ def insert_user(user_id, gender, age, subgroup, username, weight, height, activi
 
     # SQL query to insert data into user_profile
     insert_query = """ 
-    INSERT INTO user_profile
+    INSERT INTO user_profile (user_id, gender, age, subgroup, username, min_age, max_age, weight, height, activity_level)
     SELECT
         %s AS user_id,
         %s AS gender,
@@ -39,13 +39,13 @@ def insert_user(user_id, gender, age, subgroup, username, weight, height, activi
     WHERE
         lsgr.subgroup = %s AND lsgr.gender = %s
         AND %s BETWEEN lsgr.min_age AND lsgr.max_age
+        LIMIT 1;
     """
 
     try:
         # Execute the query with the appropriate parameters
         cursor.execute(insert_query,
-                       (
-                       user_id, gender, age, subgroup, username, weight, height, activity_level, subgroup, gender, age))
+                       (user_id, gender, age, subgroup, username, weight, height, activity_level, subgroup, gender, age))
 
         # Commit the transaction to save changes
         connection.commit()
@@ -134,11 +134,10 @@ def join_team(groups):
 def get_daily_gap(user_id, date):
     # return the daily gap of the user in the given date
     # the gap is dict of the deficencies and the excesses , the amount of the deficencies and the excesses
-    return 0;
-
-
-
-
+    print("daily gap of the user in the given date")
+    print("user id: ", user_id)
+    print("date: ", date)
+    return 80;
 
 
 def recommand_food(defic_list):
@@ -160,3 +159,4 @@ def trends(user_id):
 def comparison_team(team_id):
     # return the comparison of the team
     return 0;
+

@@ -46,7 +46,7 @@ def insert_eaten_window():
         food_name = food_entry.get()
         amount = amount_entry.get()
         date = date_entry.get()
-        insert_eaten(shared.user_id, date, food_name, amount)
+        insert_eaten(food_name, amount, shared.user_id, date)
         messagebox.showinfo("Success", f"Food '{food_name}' added with amount {amount} g!")
         food_entry.delete(0, tk.END)
         amount_entry.delete(0, tk.END)

@@ -4,6 +4,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk  # For handling the logo image
 from login_windows import sign_in, log_in
 import shared
+from fun_names import connect_to_db
 
 # Function to handle log-in
 # def log_in():
@@ -47,5 +48,6 @@ def open_app():
     shared.root.mainloop()
 
 # Run the application
+connect_to_db()
 open_app()
 

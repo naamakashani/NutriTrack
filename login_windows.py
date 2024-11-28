@@ -22,7 +22,7 @@ def sign_in():
 
         try:
             # Call the insert_user function
-            insert_user(user_id, user_name, age, gender, subgroup, weight, height, activity_level)
+            insert_user(user_id, gender, age, subgroup, user_name, weight, height, activity_level)
             messagebox.showinfo("Success", "User details have been successfully saved!")
 
             # Clear all input fields
