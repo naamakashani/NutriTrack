@@ -148,7 +148,7 @@ def get_daily_gap(user_id, date):
     connection, cursor = connect_to_db()
     # Fetch user profile to get gender, subgroup, age, and activity level
     cursor.execute("""
-            SELECT gender, subgroup, min_age, max_age
+            SELECT gender, subgroup, min_age, max_age,desired_calories
             FROM user_profile
             WHERE user_id = %s
         """, (user_id,))
@@ -157,7 +157,7 @@ def get_daily_gap(user_id, date):
     if user_profile is None:
         return {"error": "User not found"}
 
-    gender, subgroup, min_age, max_age = user_profile
+    gender, subgroup, min_age, max_age, desired_calories = user_profile
 
     # Fetch recommended daily values from life_stage_group_daily_recommand
     cursor.execute("""
@@ -209,13 +209,13 @@ def get_daily_gap(user_id, date):
         "Vitamin_B12_mg": 0,
         "Pantothenic_acid_mg": 0
     }
-
+    total_calories_intake = 0
     # Fetch nutritional info for each food consumed
     for food_name, amount in eaten_foods:
         cursor.execute("""
                 SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, 
                        Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg, 
-                       Pantothenic_acid_mg
+                       Pantothenic_acid_mg, Caloric_Value_kcal
                 FROM food
                 WHERE food_name = %s
             """, (food_name,))
@@ -225,6 +225,7 @@ def get_daily_gap(user_id, date):
             # Calculate the intake of each nutrient for the given amount of the food
             for i, nutrient in enumerate(nutrient_intakes):
                 nutrient_intakes[nutrient] += food_nutrients[i] * amount / 100  # Assuming amount is in grams
+            total_calories_intake += food_nutrients[11] * amount / 100
 
     # Calculate the daily gap (deficiencies and excesses)
     daily_gap = {}
@@ -237,6 +238,12 @@ def get_daily_gap(user_id, date):
         else:
             daily_gap[nutrient] = {"deficiency": 0, "excess": 0}
 
+    if desired_calories < total_calories_intake:
+        daily_gap["Caloric_Value_kcal"] = {"deficiency": 0, "excess": total_calories_intake-desired_calories}
+    else:
+        daily_gap["Caloric_Value_kcal"] = {"deficiency": desired_calories-total_calories_intake, "excess": 0}
+
+
     # Close the database connection
     cursor.close()
     db.close()
@@ -248,9 +255,42 @@ def get_daily_gap(user_id, date):
 
 
 def recommand_food(defic_list):
-    # return the recommanded food by the list of deficencies
-    # by top 10
-    return 0;
+    """
+    Recommend top 2 foods for each nutrient in the deficiency list.
+
+    Parameters:
+    - defic_list (list): list of  nutrients (e.g., 'Vitamin_A_mg')
+
+    Returns:
+    - recommendations (dict): Dictionary where keys are nutrients, and values
+      are lists of top 2 food names that are richest in that nutrient.
+    """
+
+    connection, cursor = connect_to_db()
+    recommendations = {}
+    try:
+        for nutrient in defic_list:
+            # Query top 5 foods based on the nutrient
+            query = f"""
+                  SELECT food_name, {nutrient}
+                  FROM food
+                  ORDER BY {nutrient} DESC
+                  LIMIT 2;
+              """
+            cursor.execute(query)
+            results = cursor.fetchall()
+
+            # Extract food names
+            food_names = [row[0] for row in results]
+            recommendations[nutrient] = food_names
+
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
+
+    return recommendations
 
 
 def statistics(user_id):
