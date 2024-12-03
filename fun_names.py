@@ -1,9 +1,11 @@
 import pymysql
+from collections import defaultdict
+import re
 def connect_to_db():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'shachar100'
+    password = 'Nn021099!'
     database = 'food_recommandation'
 
     try:
@@ -45,7 +47,8 @@ def insert_user(user_id, gender, age, subgroup, username, weight, height, activi
     try:
         # Execute the query with the appropriate parameters
         cursor.execute(insert_query,
-                       (user_id, gender, age, subgroup, username, weight, height, activity_level, subgroup, gender, age))
+                       (
+                       user_id, gender, age, subgroup, username, weight, height, activity_level, subgroup, gender, age))
 
         # Commit the transaction to save changes
         connection.commit()
@@ -60,31 +63,39 @@ def insert_user(user_id, gender, age, subgroup, username, weight, height, activi
         connection.close()
 
 
-def insert_eaten(food_name, amount, user_id, date_of_eat):
-    # Insert the eaten food to the eat table
+def insert_eaten(food, amount, user_id, date_of_eat):
+    # Connect to the database
     connection, cursor = connect_to_db()
-
-    # SQL query to insert data into the eat table
-    insert_query = """
-        INSERT INTO eat (food_name, amount, user_id, date_of_eat)
-        VALUES (%s, %s, %s, %s);
-    """
-
     try:
-        # Execute the query with the provided values
-        cursor.execute(insert_query, (food_name, amount, user_id, date_of_eat))
+        # Normalize the input food string: trim spaces, convert to lowercase
+        food = re.sub(r'\s+', ' ', food.strip().lower())
 
-        # Commit the transaction to save changes
-        connection.commit()
+        # Find the exact food name in the food table (case-insensitive exact match)
+        select_query = "SELECT food_name FROM food WHERE LOWER(food_name) = %s"
+        cursor.execute(select_query, (food,))  # No need for '%' wildcards for exact match
+        result = cursor.fetchone()
 
-    except pymysql.MySQLError as e:
-        # Handle exceptions (log the error or re-raise as needed)
-        print(f"Error inserting into eat table: {e}")
+        if result:
+            # Food exists; insert the eaten food into the `eat` table
+            food_name = result[0]
+            insert_query = """
+                INSERT INTO eat (food_name, amount, user_id, date_of_eat)
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor.execute(insert_query, (food_name, amount, user_id, date_of_eat))
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return 1
+        else:
+            # Food does not exist
+            cursor.close()
+            connection.close()
+            return 0
+    except Exception as e:
+        connection.rollback()
+        return f"An error occurred: {e}"
 
-    finally:
-        # Close the cursor and connection
-        cursor.close()
-        connection.close()
 
 
 def create_new_team(team_name):
@@ -134,6 +145,89 @@ def join_team(groups):
 def get_daily_gap(user_id, date):
     # return the daily gap of the user in the given date
     # the gap is dict of the deficencies and the excesses , the amount of the deficencies and the excesses
+    connection, cursor = connect_to_db()
+    # Fetch user profile to get gender, subgroup, age, and activity level
+    cursor.execute("""
+            SELECT gender, subgroup, min_age, max_age
+            FROM user_profile
+            WHERE user_id = %s
+        """, (user_id,))
+    user_profile = cursor.fetchone()
+
+    if user_profile is None:
+        return {"error": "User not found"}
+
+    gender, subgroup, min_age, max_age = user_profile
+
+    # Fetch recommended daily values from life_stage_group_daily_recommand
+    cursor.execute("""
+            SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, 
+                   Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg, 
+                   Pantothenic_acid_mg
+            FROM life_stage_group_daily_recommand
+            WHERE gender = %s AND subgroup = %s AND min_age <= %s AND max_age >= %s
+        """, (gender, subgroup, min_age, max_age))
+    recommended_values = cursor.fetchone()
+
+    if recommended_values is None:
+        return {"error": "No recommendations found for the user profile"}
+
+    # Map the recommended values to a dictionary for easy access
+    recommended_nutrients = {
+        "Vitamin_A_mg": recommended_values[0],
+        "Vitamin_C_mg": recommended_values[1],
+        "Vitamin_D_mg": recommended_values[2],
+        "Vitamin_E_mg": recommended_values[3],
+        "Vitamin_K_mg": recommended_values[4],
+        "Thiamin_mg": recommended_values[5],
+        "Riboflavin_mg": recommended_values[6],
+        "Niacin_mg": recommended_values[7],
+        "Vitamin_B6_mg": recommended_values[8],
+        "Vitamin_B12_mg": recommended_values[9],
+        "Pantothenic_acid_mg": recommended_values[10]
+    }
+
+    # Fetch the foods consumed by the user on the given date
+    cursor.execute("""
+            SELECT food_name, amount
+            FROM eat
+            WHERE user_id = %s AND DATE(date_of_eat) = %s
+        """, (user_id, date))
+    eaten_foods = cursor.fetchall()
+
+    # Initialize a dictionary to hold the user's total intake for each nutrient
+    nutrient_intakes = defaultdict(float)
+
+    # Fetch nutritional info for each food consumed
+    for food_name, amount in eaten_foods:
+        cursor.execute("""
+                SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, 
+                       Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg, 
+                       Pantothenic_acid_mg
+                FROM food
+                WHERE food_name = %s
+            """, (food_name,))
+        food_nutrients = cursor.fetchone()
+
+        if food_nutrients:
+            # Calculate the intake of each nutrient for the given amount of the food
+            for i, nutrient in enumerate(nutrient_intakes):
+                nutrient_intakes[nutrient] += food_nutrients[i] * amount / 100  # Assuming amount is in grams
+
+    # Calculate the daily gap (deficiencies and excesses)
+    daily_gap = {}
+    for nutrient, recommended_value in recommended_nutrients.items():
+        intake = nutrient_intakes.get(nutrient, 0)
+        if intake < recommended_value:
+            daily_gap[nutrient] = {"deficiency": recommended_value - intake, "excess": 0}
+        elif intake > recommended_value:
+            daily_gap[nutrient] = {"deficiency": 0, "excess": intake - recommended_value}
+        else:
+            daily_gap[nutrient] = {"deficiency": 0, "excess": 0}
+
+    # Close the database connection
+    cursor.close()
+    db.close()
     print("daily gap of the user in the given date")
     print("user id: ", user_id)
     print("date: ", date)
@@ -159,4 +253,3 @@ def trends(user_id):
 def comparison_team(team_id):
     # return the comparison of the team
     return 0;
-

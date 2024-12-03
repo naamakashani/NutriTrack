@@ -8,7 +8,7 @@ def load_food_data_big():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'shachar100'
+    password = 'Nn021099!'
     database = 'food_recommandation'
 
     # Paths to your CSV files
@@ -62,7 +62,7 @@ def convert_scale():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'shachar100'
+    password = 'Nn021099!'
     database = 'food_recommandation'
 
     # Paths to your CSV files
@@ -79,7 +79,7 @@ def convert_scale():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'shachar100'
+    password = 'Nn021099!'
     database = 'food_recommandation'
 
 
@@ -137,7 +137,7 @@ def load_food_data_small():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'shachar100'
+    password = 'Nn021099!'
     database = 'food_recommandation'
 
     # Paths to your CSV files
@@ -207,6 +207,6 @@ def load_food_data_small():
 
 # main
 if __name__ == '__main__':
-    #load_food_data_big()
-    #convert_scale()
+    load_food_data_big()
+    convert_scale()
     load_food_data_small()

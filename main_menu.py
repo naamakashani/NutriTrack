@@ -46,8 +46,11 @@ def insert_eaten_window():
         food_name = food_entry.get()
         amount = amount_entry.get()
         date = date_entry.get()
-        insert_eaten(food_name, amount, shared.user_id, date)
-        messagebox.showinfo("Success", f"Food '{food_name}' added with amount {amount} g!")
+        flag= insert_eaten(food_name, amount, shared.user_id, date)
+        if flag:
+            messagebox.showinfo("Success", f"Food '{food_name}' added with amount {amount} g!")
+        else:
+            messagebox.showerror("Error", f"Food '{food_name}' not found in the database!")
         food_entry.delete(0, tk.END)
         amount_entry.delete(0, tk.END)
         date_entry.delete(0, tk.END)
