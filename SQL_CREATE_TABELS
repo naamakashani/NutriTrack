@@ -62,7 +62,8 @@ CREATE TABLE food (
     Potassium_mg DECIMAL(12, 4), -- Potassium in mg
     Selenium_mg DECIMAL(12, 4), -- Selenium in mg
     Zinc_mg DECIMAL(12, 4), -- Zinc in mg
-    PRIMARY KEY (food_name) -- Food_Name as a unique identifier 
+    PRIMARY KEY (food_name), -- Food_Name as a unique identifier
+    FULLTEXT(food_name) 
 );
 
 CREATE TABLE eat (
