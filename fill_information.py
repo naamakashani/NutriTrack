@@ -4,7 +4,7 @@ def connect_to_db():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'shachar100'
+    password = 'Nn021099!'
     database = 'food_recommandation'
     # Connect to the database
     connection = pymysql.connect(host=host, user=user, password=password, database=database)
@@ -43,7 +43,7 @@ def life_stage_group_load(connection, cursor):
                                           ))
         # Commit the changes
         connection.commit()
-        print("Data inserted successfully.")
+        print("life_stage_group_load inserted successfully.")
     except Exception as e:
         print("An error occurred:", e)
         connection.rollback()  # Rollback in case of error
@@ -293,7 +293,7 @@ def load_food_data_small(connection, cursor):
 
         # Commit the changes
         connection.commit()
-        print("Data inserted successfully.")
+        print("Data small inserted successfully.")
     except Exception as e:
         print("An error occurred:", e)
         connection.rollback()  # Rollback in case of error
@@ -312,6 +312,8 @@ def fill_information():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    import os
+    os.chdir(r'C:\Users\kashann\PycharmProjects\NutriTrack')
     fill_information()
 
 
