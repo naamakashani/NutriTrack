@@ -195,8 +195,20 @@ def get_daily_gap(user_id, date):
         """, (user_id, date))
     eaten_foods = cursor.fetchall()
 
-    # Initialize a dictionary to hold the user's total intake for each nutrient
-    nutrient_intakes = defaultdict(float)
+    #create dictionary to store the daily intake of each nutrient
+    nutrient_intakes = {
+        "Vitamin_A_mg": 0,
+        "Vitamin_C_mg": 0,
+        "Vitamin_D_mg": 0,
+        "Vitamin_E_mg": 0,
+        "Vitamin_K_mg": 0,
+        "Thiamin_mg": 0,
+        "Riboflavin_mg": 0,
+        "Niacin_mg": 0,
+        "Vitamin_B6_mg": 0,
+        "Vitamin_B12_mg": 0,
+        "Pantothenic_acid_mg": 0
+    }
 
     # Fetch nutritional info for each food consumed
     for food_name, amount in eaten_foods:
@@ -228,10 +240,11 @@ def get_daily_gap(user_id, date):
     # Close the database connection
     cursor.close()
     db.close()
+
     print("daily gap of the user in the given date")
     print("user id: ", user_id)
     print("date: ", date)
-    return 80;
+    return daily_gap
 
 
 def recommand_food(defic_list):
