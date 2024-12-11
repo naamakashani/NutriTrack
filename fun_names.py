@@ -149,9 +149,20 @@ def get_daily_gap(user_id, date):
     Returns a dictionary of nutrient deficiencies and excesses, along with caloric gap.
     """
     try:
-        # Connect to the database
         connection, cursor = connect_to_db()
-        cursor.execute(""" SELECT 
+        cursor.execute(""" SELECT
+            ls.Vitamin_A_mg - daily.daily_Vitamin_A_mg AS Vitamin_A_gap,
+            ls.Vitamin_C_mg - daily.daily_Vitamin_C_mg AS Vitamin_C_gap,
+            ls.Vitamin_D_mg - daily.daily_Vitamin_D_mg AS Vitamin_D_gap,
+            ls.Vitamin_E_mg - daily.daily_Vitamin_E_mg AS Vitamin_E_gap,
+            ls.Vitamin_K_mg - daily.daily_Vitamin_K_mg AS Vitamin_K_gap,
+            ls.Thiamin_mg - daily.daily_Thiamin_mg AS Thiamin_gap,
+            ls.Riboflavin_mg - daily.daily_Riboflavin_mg AS Riboflavin_gap,
+            ls.Niacin_mg - daily.daily_Niacin_mg AS Niacin_gap,
+            ls.Vitamin_B6_mg - daily.daily_Vitamin_B6_mg AS Vitamin_B6_gap,
+            ls.Vitamin_B12_mg - daily.daily_Vitamin_B12_mg AS Vitamin_B12_gap,
+            ls.Pantothenic_acid_mg - daily.daily_Pantothenic_acid_mg AS Pantothenic_acid_gap,
+            user_profile.desired_calories - daily.daily_Caloric_Value_kcal AS Caloric_gap
         FROM(
             SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg,
                    Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg,
@@ -176,96 +187,17 @@ def get_daily_gap(user_id, date):
             INNER JOIN food ON eat.food_name = food.food_name
             WHERE eat.user_id = %s AND DATE(eat.date_of_eat) = %s)
                       
-        """, (user_id, date))
-        # cursor.commit()
-        # recommended_values = cursor.fetchone()
-        #
-        # if not recommended_values:
-        #     return {"error": "No recommendations found for the user profile"}
-        #
-        # # Map recommended values to a dictionary
-        # recommended_nutrients = {
-        #     "Vitamin_A_mg": recommended_values[0],
-        #     "Vitamin_C_mg": recommended_values[1],
-        #     "Vitamin_D_mg": recommended_values[2],
-        #     "Vitamin_E_mg": recommended_values[3],
-        #     "Vitamin_K_mg": recommended_values[4],
-        #     "Thiamin_mg": recommended_values[5],
-        #     "Riboflavin_mg": recommended_values[6],
-        #     "Niacin_mg": recommended_values[7],
-        #     "Vitamin_B6_mg": recommended_values[8],
-        #     "Vitamin_B12_mg": recommended_values[9],
-        #     "Pantothenic_acid_mg": recommended_values[10],
-        # }
+        """, (user_id,user_id, date))
 
-        # Fetch total nutrient and calorie intake for the user on the given date
-        # cursor.execute("""
-        #     SELECT SUM(eat.amount * food.Vitamin_A_mg / 100) AS daily_Vitamin_A_mg,
-        #            SUM(eat.amount * food.Vitamin_C_mg / 100) AS daily_Vitamin_C_mg,
-        #            SUM(eat.amount * food.Vitamin_D_mg / 100) AS daily_Vitamin_D_mg,
-        #            SUM(eat.amount * food.Vitamin_E_mg / 100) AS daily_Vitamin_E_mg,
-        #            SUM(eat.amount * food.Vitamin_K_mg / 100) AS daily_Vitamin_K_mg,
-        #            SUM(eat.amount * food.Thiamin_mg / 100) AS daily_Thiamin_mg,
-        #            SUM(eat.amount * food.Riboflavin_mg / 100) AS daily_Riboflavin_mg,
-        #            SUM(eat.amount * food.Niacin_mg / 100) AS daily_Niacin_mg,
-        #            SUM(eat.amount * food.Vitamin_B6_mg / 100) AS daily_Vitamin_B6_mg,
-        #            SUM(eat.amount * food.Vitamin_B12_mg / 100) AS daily_Vitamin_B12_mg,
-        #            SUM(eat.amount * food.Pantothenic_acid_mg / 100) AS daily_Pantothenic_acid_mg,
-        #            SUM(eat.amount * food.Caloric_Value_kcal / 100) AS daily_Caloric_Value_kcal
-        #     FROM eat
-        #     INNER JOIN food ON eat.food_name = food.food_name
-        #     WHERE eat.user_id = %s AND DATE(eat.date_of_eat) = %s
-        # """, (user_id, date))
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
 
 
-    #     total_daily_consumption = cursor.fetchone()
-    #
-    #     # Map fetched nutrient data to a dictionary
-    #     nutrient_intakes = {
-    #         "Vitamin_A_mg": total_daily_consumption[0] or 0,
-    #         "Vitamin_C_mg": total_daily_consumption[1] or 0,
-    #         "Vitamin_D_mg": total_daily_consumption[2] or 0,
-    #         "Vitamin_E_mg": total_daily_consumption[3] or 0,
-    #         "Vitamin_K_mg": total_daily_consumption[4] or 0,
-    #         "Thiamin_mg": total_daily_consumption[5] or 0,
-    #         "Riboflavin_mg": total_daily_consumption[6] or 0,
-    #         "Niacin_mg": total_daily_consumption[7] or 0,
-    #         "Vitamin_B6_mg": total_daily_consumption[8] or 0,
-    #         "Vitamin_B12_mg": total_daily_consumption[9] or 0,
-    #         "Pantothenic_acid_mg": total_daily_consumption[10] or 0,
-    #     }
-    #     total_calories_intake = total_daily_consumption[11] or 0
-    #
-    #     # Calculate the daily gap
-    #     daily_gap = {}
-    #     for nutrient, recommended_value in recommended_nutrients.items():
-    #         intake = nutrient_intakes.get(nutrient, 0)
-    #         if intake < recommended_value:
-    #             daily_gap[nutrient] = {"deficiency": recommended_value - intake, "excess": 0}
-    #         elif intake > recommended_value:
-    #             daily_gap[nutrient] = {"deficiency": 0, "excess": intake - recommended_value}
-    #         else:
-    #             daily_gap[nutrient] = {"deficiency": 0, "excess": 0}
-    #
-    #     if total_calories_intake < desired_calories:
-    #         daily_gap["Caloric_Value_kcal"] = {
-    #             "deficiency": desired_calories - total_calories_intake,
-    #             "excess": 0,
-    #         }
-    #     else:
-    #         daily_gap["Caloric_Value_kcal"] = {
-    #             "deficiency": 0,
-    #             "excess": total_calories_intake - desired_calories,
-    #         }
-    #
-    #
-    # except Exception as e:
-    #     print(f"Error: {e}")
-    # finally:
-    #     cursor.close()
-    #     connection.close()
-    #
-    # return daily_gap
+
+
 
 
 def recommand_food(defic_list):

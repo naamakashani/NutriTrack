@@ -6,7 +6,53 @@ import shared
 from fun_names import *
 
 def display_daily_gap(daily_gap):
-    pass
+    """
+    Displays the daily gap in a new window with color-coded values.
+    :param daily_gap: Dictionary with nutrient gaps
+                      (e.g., {"Calories": 500, "Protein": -30, "Carbs": 50, "Fats": -20})
+    """
+    # Create a new window
+    gap_display_window = tk.Toplevel()
+    gap_display_window.title("Daily Gap")
+    gap_display_window.geometry("400x400")
+    gap_display_window.configure(bg="#f7f9fc")
+
+    # Title label
+    tk.Label(
+        gap_display_window,
+        text="Daily Nutritional Gap",
+        font=("Helvetica", 16),
+        bg="#f7f9fc"
+    ).pack(pady=10)
+
+    # Instructions label
+    tk.Label(
+        gap_display_window,
+        text="Excess values are in green, deficiencies are in red.",
+        font=("Helvetica", 10),
+        bg="#f7f9fc",
+        fg="gray"
+    ).pack(pady=5)
+
+    # Display each nutrient gap with color-coding
+    for nutrient, gap in daily_gap.items():
+        color = "green" if gap > 0 else "red" if gap < 0 else "black"
+        value_text = f"+{gap}" if gap > 0 else str(gap)  # Add "+" for excess values
+        tk.Label(
+            gap_display_window,
+            text=f"{nutrient}: {value_text}",
+            font=("Helvetica", 14),
+            bg="#f7f9fc",
+            fg=color
+        ).pack(pady=5)
+
+    # Close button
+    ttk.Button(
+        gap_display_window,
+        text="Close",
+        command=gap_display_window.destroy
+    ).pack(pady=20)
+
 def daily_gap_window():
     def submit_date():
         # Get the date from the entry field
