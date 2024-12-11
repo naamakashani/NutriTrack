@@ -18,7 +18,7 @@ def open_app():
     shared.root.configure(bg="#d6eefc")
 
     # Load and display the logo image
-    logo_image = Image.open(r'C:\Users\kashann\PycharmProjects\NutriTrack\image.png')  # Replace with the uploaded logo file path
+    logo_image = Image.open(r'.\image.png')  # Replace with the uploaded logo file path
     # target size
     target_width = 200
     # Calculate proportional height based on original dimensions

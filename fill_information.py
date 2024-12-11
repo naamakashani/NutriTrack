@@ -4,7 +4,7 @@ def connect_to_db():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'Nn021099!'
+    password = 'shachar100'
     database = 'food_recommandation'
     # Connect to the database
     connection = pymysql.connect(host=host, user=user, password=password, database=database)

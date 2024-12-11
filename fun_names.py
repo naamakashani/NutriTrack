@@ -7,7 +7,7 @@ def connect_to_db():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'Nn021099!'
+    password = 'shachar100'
     database = 'food_recommandation'
 
     try:
@@ -151,25 +151,26 @@ def get_daily_gap(user_id, date):
     try:
         connection, cursor = connect_to_db()
         cursor.execute(""" SELECT
-            ls.Vitamin_A_mg - daily.daily_Vitamin_A_mg AS Vitamin_A_gap,
-            ls.Vitamin_C_mg - daily.daily_Vitamin_C_mg AS Vitamin_C_gap,
-            ls.Vitamin_D_mg - daily.daily_Vitamin_D_mg AS Vitamin_D_gap,
-            ls.Vitamin_E_mg - daily.daily_Vitamin_E_mg AS Vitamin_E_gap,
-            ls.Vitamin_K_mg - daily.daily_Vitamin_K_mg AS Vitamin_K_gap,
-            ls.Thiamin_mg - daily.daily_Thiamin_mg AS Thiamin_gap,
-            ls.Riboflavin_mg - daily.daily_Riboflavin_mg AS Riboflavin_gap,
-            ls.Niacin_mg - daily.daily_Niacin_mg AS Niacin_gap,
-            ls.Vitamin_B6_mg - daily.daily_Vitamin_B6_mg AS Vitamin_B6_gap,
-            ls.Vitamin_B12_mg - daily.daily_Vitamin_B12_mg AS Vitamin_B12_gap,
-            ls.Pantothenic_acid_mg - daily.daily_Pantothenic_acid_mg AS Pantothenic_acid_gap,
-            user_profile.desired_calories - daily.daily_Caloric_Value_kcal AS Caloric_gap
-        FROM(
+            recom_user.Vitamin_A_mg - daily.daily_Vitamin_A_mg AS Vitamin_A_gap,
+            recom_user.Vitamin_C_mg - daily.daily_Vitamin_C_mg AS Vitamin_C_gap,
+            recom_user.Vitamin_D_mg - daily.daily_Vitamin_D_mg AS Vitamin_D_gap,
+            recom_user.Vitamin_E_mg - daily.daily_Vitamin_E_mg AS Vitamin_E_gap,
+            recom_user.Vitamin_K_mg - daily.daily_Vitamin_K_mg AS Vitamin_K_gap,
+            recom_user.Thiamin_mg - daily.daily_Thiamin_mg AS Thiamin_gap,
+            recom_user.Riboflavin_mg - daily.daily_Riboflavin_mg AS Riboflavin_gap,
+            recom_user.Niacin_mg - daily.daily_Niacin_mg AS Niacin_gap,
+            recom_user.Vitamin_B6_mg - daily.daily_Vitamin_B6_mg AS Vitamin_B6_gap,
+            recom_user.Vitamin_B12_mg - daily.daily_Vitamin_B12_mg AS Vitamin_B12_gap,
+            recom_user.Pantothenic_acid_mg - daily.daily_Pantothenic_acid_mg AS Pantothenic_acid_gap,
+            recom_user.desired_calories - daily.daily_Caloric_Value_kcal AS Caloric_gap
+        FROM (
             SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg,
                    Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg,
                    Pantothenic_acid_mg,user_profile.desired_calories
             FROM life_stage_group_daily_recommand as ls,user_profile           
             WHERE user_profile.user_id = %s AND
-            ls.gender=user_profile.gender AND ls.subgroup=user_profile.subgroup AND ls.min_age=user_profile.min_age AND ls.max_age=user_profile.max_age),
+            ls.gender=user_profile.gender AND ls.subgroup=user_profile.subgroup AND ls.min_age=user_profile.min_age AND 
+            ls.max_age=user_profile.max_age) as recom_user,
         
             (SELECT SUM(eat.amount * food.Vitamin_A_mg / 100) AS daily_Vitamin_A_mg,
                    SUM(eat.amount * food.Vitamin_C_mg / 100) AS daily_Vitamin_C_mg,
@@ -185,9 +186,43 @@ def get_daily_gap(user_id, date):
                    SUM(eat.amount * food.Caloric_Value_kcal / 100) AS daily_Caloric_Value_kcal
             FROM eat
             INNER JOIN food ON eat.food_name = food.food_name
-            WHERE eat.user_id = %s AND DATE(eat.date_of_eat) = %s)
+            WHERE eat.user_id = %s AND DATE(eat.date_of_eat) = %s) as daily
                       
-        """, (user_id,user_id, date))
+        """, (user_id, user_id, date))
+        daily_gap = cursor.fetchone()
+        print(daily_gap)
+
+        # todo : check that it work gor negative gap
+        # todo : check that this is good
+        # todo opsite the minus and plus
+
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
+    return daily_gap
+
+
+
+
+def recommand_food_for_nutrient(nutrient):
+    connection, cursor = connect_to_db()
+    recommendations = {}
+    try:
+        # Query top 5 foods based on the nutrient
+        query = f"""
+                    SELECT food_name, {nutrient}
+                    FROM food
+                    ORDER BY {nutrient} DESC
+                    LIMIT 5;
+                """
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+        # Extract food names
+        food_names = [row[0] for row in results]
+
 
     except Exception as e:
         print(f"Error: {e}")
@@ -195,10 +230,7 @@ def get_daily_gap(user_id, date):
         cursor.close()
         connection.close()
 
-
-
-
-
+    return food_names
 
 def recommand_food(defic_list):
     """
@@ -216,7 +248,7 @@ def recommand_food(defic_list):
     recommendations = {}
     try:
         for nutrient in defic_list:
-            # Query top 5 foods based on the nutrient
+            # Query top 2 foods based on the nutrient
             query = f"""
                   SELECT food_name, {nutrient}
                   FROM food
@@ -229,6 +261,7 @@ def recommand_food(defic_list):
             # Extract food names
             food_names = [row[0] for row in results]
             recommendations[nutrient] = food_names
+
 
     except Exception as e:
         print(f"Error: {e}")
