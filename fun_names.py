@@ -20,6 +20,28 @@ def connect_to_db():
         raise  # Re-raise the exception after logging
 
 
+def check_user_exists(user_id):
+    # Check if a user with the given user_id exists in the user_profile table
+    connection, cursor = connect_to_db()
+
+    # Prepare the SQL query
+    select_query = "SELECT COUNT(*) FROM user_profile WHERE user_id = %s"
+
+    try:
+        # Execute the query with the provided user_id
+        cursor.execute(select_query, (user_id,))
+        result = cursor.fetchone()
+        return result[0]
+
+    except pymysql.MySQLError as e:
+        # Handle exceptions (log the error or re-raise as needed)
+        print(f"Error checking user existence: {e}")
+        return False
+
+    finally:
+        # Close the cursor and connection
+        cursor.close()
+        connection.close()
 def insert_user(user_id, gender, age, subgroup, username, weight, height, activity_level):
     # Insert a new user into the user_profile table
     connection, cursor = connect_to_db()
@@ -292,31 +314,13 @@ def avg_consumption(user_id, period):
     """
     cursor.execute(query, (user_id, period))
     consumption = cursor.fetchone()
-    if consumption:
-        return {
-            "Avg_Calories": consumption[0],
-            "Avg_Protein_g": consumption[1],
-            "Avg_Fiber_g": consumption[2],
-            "Avg_Vitamin_A_mg": consumption[3],
-            "Avg_Vitamin_C_mg": consumption[4],
-            "Avg_Vitamin_D_mg": consumption[5],
-            "Avg_Vitamin_E_mg": consumption[6],
-            "Avg_Vitamin_K_mg": consumption[7],
-            "Avg_Thiamin_mg": consumption[8],
-            "Avg_Riboflavin_mg": consumption[9],
-            "Avg_Niacin_mg": consumption[10],
-            "Avg_Vitamin_B6_mg": consumption[11],
-            "Avg_Vitamin_B12_mg": consumption[12],
-            "Avg_Pantothenic_Acid_mg": consumption[13]
-        }
-    else:
-        # If no data is found for the user in the last 7 days
-        return None
+    return consumption
+
 
 
 def statistics(user_id):
-    avg_week = avg_week_consumption(user_id, 7)
-    avg_month = avg_week_consumption(user_id, 30)
+    avg_week = avg_consumption(user_id, 7)
+    avg_month = avg_consumption(user_id, 30)
 
 
 def trends(user_id):
