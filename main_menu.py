@@ -5,6 +5,8 @@ from PIL import Image, ImageTk  # For handling the logo image
 import shared
 from fun_names import *
 
+def display_daily_gap(daily_gap):
+    pass
 def daily_gap_window():
     def submit_date():
         # Get the date from the entry field
@@ -16,9 +18,13 @@ def daily_gap_window():
             try:
                 # Fetch the daily gap using the provided date
                 daily_gap = get_daily_gap(shared.user_id, date)
+                if not daily_gap:
+                    messagebox.showinfo("Daily Gap", "No data available for the selected date.")
+                    return
 
-                # Display the daily gap in a message box
-                messagebox.showinfo("Daily Gap", f"Daily Gap: {daily_gap}")
+                # Display the daily gap
+                display_daily_gap(daily_gap)
+
             except Exception as e:
                 # Handle any potential errors gracefully
                 messagebox.showerror("Error", f"An error occurred: {e}")
@@ -46,7 +52,7 @@ def insert_eaten_window():
         food_name = food_entry.get()
         amount = amount_entry.get()
         date = date_entry.get()
-        flag= insert_eaten(food_name, amount, shared.user_id, date)
+        flag = insert_eaten(food_name, amount, shared.user_id, date)
         if flag:
             messagebox.showinfo("Success", f"Food '{food_name}' added with amount {amount} g!")
         else:
@@ -82,7 +88,6 @@ def recommendations_window():
     messagebox.showinfo("Recommendations", "Recommendations feature is under development.")
 
 
-
 def statistics_window():
     messagebox.showinfo("Statistics", "Statistics feature is under development.")
 
@@ -93,9 +98,10 @@ def trends_window():
 
 def comparison_window():
     messagebox.showinfo("Comparison", "Team Comparison feature is under development.")
+
+
 # Open the main menu
 def open_main_menu():
-
     main_menu = tk.Tk()
     main_menu.title("Nutrition Tracker - Main Menu")
     main_menu.geometry("500x600")

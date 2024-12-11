@@ -129,7 +129,6 @@ def create_users(connection, cursor):
     WHERE
         lsgr.subgroup = %s AND lsgr.gender = %s
         AND %s BETWEEN lsgr.min_age AND lsgr.max_age
-    LIMIT 1;
     """
 
     for index, row in df.iterrows():
