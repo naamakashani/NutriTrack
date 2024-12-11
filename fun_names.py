@@ -151,33 +151,6 @@ def get_daily_gap(user_id, date):
     try:
         # Connect to the database
         connection, cursor = connect_to_db()
-        """
-        SELECT 
-        FROM(
-            SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg,
-                   Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg,
-                   Pantothenic_acid_mg,user_profile.desired_calories
-            FROM life_stage_group_daily_recommand as ls,user_profile           
-            WHERE user_profile.user_id = %s AND
-            ls.gender=user_profile.gender AND ls.subgroup=user_profile.subgroup AND ls.min_age=user_profile.min_age AND ls.max_age=user_profile.max_age      
-        """
-
-
-
-        # Fetch user profile
-        # cursor.execute("""
-        #     SELECT gender, subgroup, min_age, max_age, desired_calories
-        #     FROM user_profile
-        #     WHERE user_id = %s
-        # """, (user_id,))
-        # user_profile = cursor.fetchone()
-        #
-        # if not user_profile:
-        #     return {"error": "User not found"}
-        #
-        # gender, subgroup, min_age, max_age, desired_calories = user_profile
-
-        # Fetch recommended daily values
         cursor.execute(""" SELECT 
         FROM(
             SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg,
@@ -185,8 +158,25 @@ def get_daily_gap(user_id, date):
                    Pantothenic_acid_mg,user_profile.desired_calories
             FROM life_stage_group_daily_recommand as ls,user_profile           
             WHERE user_profile.user_id = %s AND
-            ls.gender=user_profile.gender AND ls.subgroup=user_profile.subgroup AND ls.min_age=user_profile.min_age AND ls.max_age=user_profile.max_age           
-        """, (user_id)))
+            ls.gender=user_profile.gender AND ls.subgroup=user_profile.subgroup AND ls.min_age=user_profile.min_age AND ls.max_age=user_profile.max_age),
+        
+            (SELECT SUM(eat.amount * food.Vitamin_A_mg / 100) AS daily_Vitamin_A_mg,
+                   SUM(eat.amount * food.Vitamin_C_mg / 100) AS daily_Vitamin_C_mg,
+                   SUM(eat.amount * food.Vitamin_D_mg / 100) AS daily_Vitamin_D_mg,
+                   SUM(eat.amount * food.Vitamin_E_mg / 100) AS daily_Vitamin_E_mg,
+                   SUM(eat.amount * food.Vitamin_K_mg / 100) AS daily_Vitamin_K_mg,
+                   SUM(eat.amount * food.Thiamin_mg / 100) AS daily_Thiamin_mg,
+                   SUM(eat.amount * food.Riboflavin_mg / 100) AS daily_Riboflavin_mg,
+                   SUM(eat.amount * food.Niacin_mg / 100) AS daily_Niacin_mg,
+                   SUM(eat.amount * food.Vitamin_B6_mg / 100) AS daily_Vitamin_B6_mg,
+                   SUM(eat.amount * food.Vitamin_B12_mg / 100) AS daily_Vitamin_B12_mg,
+                   SUM(eat.amount * food.Pantothenic_acid_mg / 100) AS daily_Pantothenic_acid_mg,
+                   SUM(eat.amount * food.Caloric_Value_kcal / 100) AS daily_Caloric_Value_kcal
+            FROM eat
+            INNER JOIN food ON eat.food_name = food.food_name
+            WHERE eat.user_id = %s AND DATE(eat.date_of_eat) = %s)
+                      
+        """, (user_id, date))
         # cursor.commit()
         # recommended_values = cursor.fetchone()
         #
@@ -209,23 +199,23 @@ def get_daily_gap(user_id, date):
         # }
 
         # Fetch total nutrient and calorie intake for the user on the given date
-        cursor.execute("""
-            SELECT SUM(eat.amount * food.Vitamin_A_mg / 100) AS daily_Vitamin_A_mg,
-                   SUM(eat.amount * food.Vitamin_C_mg / 100) AS daily_Vitamin_C_mg,
-                   SUM(eat.amount * food.Vitamin_D_mg / 100) AS daily_Vitamin_D_mg,
-                   SUM(eat.amount * food.Vitamin_E_mg / 100) AS daily_Vitamin_E_mg,
-                   SUM(eat.amount * food.Vitamin_K_mg / 100) AS daily_Vitamin_K_mg,
-                   SUM(eat.amount * food.Thiamin_mg / 100) AS daily_Thiamin_mg,
-                   SUM(eat.amount * food.Riboflavin_mg / 100) AS daily_Riboflavin_mg,
-                   SUM(eat.amount * food.Niacin_mg / 100) AS daily_Niacin_mg,
-                   SUM(eat.amount * food.Vitamin_B6_mg / 100) AS daily_Vitamin_B6_mg,
-                   SUM(eat.amount * food.Vitamin_B12_mg / 100) AS daily_Vitamin_B12_mg,
-                   SUM(eat.amount * food.Pantothenic_acid_mg / 100) AS daily_Pantothenic_acid_mg,
-                   SUM(eat.amount * food.Caloric_Value_kcal / 100) AS daily_Caloric_Value_kcal
-            FROM eat
-            INNER JOIN food ON eat.food_name = food.food_name
-            WHERE eat.user_id = %s AND DATE(eat.date_of_eat) = %s
-        """, (user_id, date))
+        # cursor.execute("""
+        #     SELECT SUM(eat.amount * food.Vitamin_A_mg / 100) AS daily_Vitamin_A_mg,
+        #            SUM(eat.amount * food.Vitamin_C_mg / 100) AS daily_Vitamin_C_mg,
+        #            SUM(eat.amount * food.Vitamin_D_mg / 100) AS daily_Vitamin_D_mg,
+        #            SUM(eat.amount * food.Vitamin_E_mg / 100) AS daily_Vitamin_E_mg,
+        #            SUM(eat.amount * food.Vitamin_K_mg / 100) AS daily_Vitamin_K_mg,
+        #            SUM(eat.amount * food.Thiamin_mg / 100) AS daily_Thiamin_mg,
+        #            SUM(eat.amount * food.Riboflavin_mg / 100) AS daily_Riboflavin_mg,
+        #            SUM(eat.amount * food.Niacin_mg / 100) AS daily_Niacin_mg,
+        #            SUM(eat.amount * food.Vitamin_B6_mg / 100) AS daily_Vitamin_B6_mg,
+        #            SUM(eat.amount * food.Vitamin_B12_mg / 100) AS daily_Vitamin_B12_mg,
+        #            SUM(eat.amount * food.Pantothenic_acid_mg / 100) AS daily_Pantothenic_acid_mg,
+        #            SUM(eat.amount * food.Caloric_Value_kcal / 100) AS daily_Caloric_Value_kcal
+        #     FROM eat
+        #     INNER JOIN food ON eat.food_name = food.food_name
+        #     WHERE eat.user_id = %s AND DATE(eat.date_of_eat) = %s
+        # """, (user_id, date))
 
 
     #     total_daily_consumption = cursor.fetchone()
