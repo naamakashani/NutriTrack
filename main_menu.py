@@ -82,6 +82,7 @@ def recommendations_window():
     messagebox.showinfo("Recommendations", "Recommendations feature is under development.")
 
 
+
 def statistics_window():
     messagebox.showinfo("Statistics", "Statistics feature is under development.")
 

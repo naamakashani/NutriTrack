@@ -1,6 +1,8 @@
 import pymysql
 from collections import defaultdict
 import re
+
+
 def connect_to_db():
     # Database connection details
     host = 'localhost'
@@ -48,7 +50,8 @@ def insert_user(user_id, gender, age, subgroup, username, weight, height, activi
         # Execute the query with the appropriate parameters
         cursor.execute(insert_query,
                        (
-                       user_id, gender, age, subgroup, username, weight, height, activity_level, subgroup, gender, age))
+                           user_id, gender, age, subgroup, username, weight, height, activity_level, subgroup, gender,
+                           age))
 
         # Commit the transaction to save changes
         connection.commit()
@@ -97,7 +100,6 @@ def insert_eaten(food, amount, user_id, date_of_eat):
         return f"An error occurred: {e}"
 
 
-
 def create_new_team(team_name):
     # Create a new team
     connection, cursor = connect_to_db()
@@ -143,114 +145,120 @@ def join_team(groups):
 
 
 def get_daily_gap(user_id, date):
-    # return the daily gap of the user in the given date
-    # the gap is dict of the deficencies and the excesses , the amount of the deficencies and the excesses
-    connection, cursor = connect_to_db()
-    # Fetch user profile to get gender, subgroup, age, and activity level
-    cursor.execute("""
-            SELECT gender, subgroup, min_age, max_age,desired_calories
+    """
+    Calculate the daily gap of the user on the given date.
+    Returns a dictionary of nutrient deficiencies and excesses, along with caloric gap.
+    """
+    try:
+        # Connect to the database
+        connection, cursor = connect_to_db()
+
+        # Fetch user profile
+        cursor.execute("""
+            SELECT gender, subgroup, min_age, max_age, desired_calories
             FROM user_profile
             WHERE user_id = %s
         """, (user_id,))
-    user_profile = cursor.fetchone()
+        user_profile = cursor.fetchone()
 
-    if user_profile is None:
-        return {"error": "User not found"}
+        if not user_profile:
+            return {"error": "User not found"}
 
-    gender, subgroup, min_age, max_age, desired_calories = user_profile
+        gender, subgroup, min_age, max_age, desired_calories = user_profile
 
-    # Fetch recommended daily values from life_stage_group_daily_recommand
-    cursor.execute("""
-            SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, 
-                   Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg, 
+        # Fetch recommended daily values
+        cursor.execute("""
+            SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg,
+                   Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg,
                    Pantothenic_acid_mg
             FROM life_stage_group_daily_recommand
             WHERE gender = %s AND subgroup = %s AND min_age <= %s AND max_age >= %s
         """, (gender, subgroup, min_age, max_age))
-    recommended_values = cursor.fetchone()
+        recommended_values = cursor.fetchone()
 
-    if recommended_values is None:
-        return {"error": "No recommendations found for the user profile"}
+        if not recommended_values:
+            return {"error": "No recommendations found for the user profile"}
 
-    # Map the recommended values to a dictionary for easy access
-    recommended_nutrients = {
-        "Vitamin_A_mg": recommended_values[0],
-        "Vitamin_C_mg": recommended_values[1],
-        "Vitamin_D_mg": recommended_values[2],
-        "Vitamin_E_mg": recommended_values[3],
-        "Vitamin_K_mg": recommended_values[4],
-        "Thiamin_mg": recommended_values[5],
-        "Riboflavin_mg": recommended_values[6],
-        "Niacin_mg": recommended_values[7],
-        "Vitamin_B6_mg": recommended_values[8],
-        "Vitamin_B12_mg": recommended_values[9],
-        "Pantothenic_acid_mg": recommended_values[10]
-    }
+        # Map recommended values to a dictionary
+        recommended_nutrients = {
+            "Vitamin_A_mg": recommended_values[0],
+            "Vitamin_C_mg": recommended_values[1],
+            "Vitamin_D_mg": recommended_values[2],
+            "Vitamin_E_mg": recommended_values[3],
+            "Vitamin_K_mg": recommended_values[4],
+            "Thiamin_mg": recommended_values[5],
+            "Riboflavin_mg": recommended_values[6],
+            "Niacin_mg": recommended_values[7],
+            "Vitamin_B6_mg": recommended_values[8],
+            "Vitamin_B12_mg": recommended_values[9],
+            "Pantothenic_acid_mg": recommended_values[10],
+        }
 
-    # Fetch the foods consumed by the user on the given date
-    cursor.execute("""
-            SELECT food_name, amount
-            FROM eat
-            WHERE user_id = %s AND DATE(date_of_eat) = %s
-        """, (user_id, date))
-    eaten_foods = cursor.fetchall()
-
-    #create dictionary to store the daily intake of each nutrient
-    nutrient_intakes = {
-        "Vitamin_A_mg": 0,
-        "Vitamin_C_mg": 0,
-        "Vitamin_D_mg": 0,
-        "Vitamin_E_mg": 0,
-        "Vitamin_K_mg": 0,
-        "Thiamin_mg": 0,
-        "Riboflavin_mg": 0,
-        "Niacin_mg": 0,
-        "Vitamin_B6_mg": 0,
-        "Vitamin_B12_mg": 0,
-        "Pantothenic_acid_mg": 0
-    }
-    total_calories_intake = 0
-    # Fetch nutritional info for each food consumed
-    for food_name, amount in eaten_foods:
+        # Fetch total nutrient and calorie intake for the user on the given date
         cursor.execute("""
-                SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, 
-                       Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg, 
-                       Pantothenic_acid_mg, Caloric_Value_kcal
-                FROM food
-                WHERE food_name = %s
-            """, (food_name,))
-        food_nutrients = cursor.fetchone()
+            SELECT SUM(eat.amount * food.Vitamin_A_mg / 100) AS daily_Vitamin_A_mg,
+                   SUM(eat.amount * food.Vitamin_C_mg / 100) AS daily_Vitamin_C_mg,
+                   SUM(eat.amount * food.Vitamin_D_mg / 100) AS daily_Vitamin_D_mg,
+                   SUM(eat.amount * food.Vitamin_E_mg / 100) AS daily_Vitamin_E_mg,
+                   SUM(eat.amount * food.Vitamin_K_mg / 100) AS daily_Vitamin_K_mg,
+                   SUM(eat.amount * food.Thiamin_mg / 100) AS daily_Thiamin_mg,
+                   SUM(eat.amount * food.Riboflavin_mg / 100) AS daily_Riboflavin_mg,
+                   SUM(eat.amount * food.Niacin_mg / 100) AS daily_Niacin_mg,
+                   SUM(eat.amount * food.Vitamin_B6_mg / 100) AS daily_Vitamin_B6_mg,
+                   SUM(eat.amount * food.Vitamin_B12_mg / 100) AS daily_Vitamin_B12_mg,
+                   SUM(eat.amount * food.Pantothenic_acid_mg / 100) AS daily_Pantothenic_acid_mg,
+                   SUM(eat.amount * food.Caloric_Value_kcal / 100) AS daily_Caloric_Value_kcal
+            FROM eat
+            INNER JOIN food ON eat.food_name = food.food_name
+            WHERE eat.user_id = %s AND DATE(eat.date_of_eat) = %s
+        """, (user_id, date))
+        total_daily_consumption = cursor.fetchone()
 
-        if food_nutrients:
-            # Calculate the intake of each nutrient for the given amount of the food
-            for i, nutrient in enumerate(nutrient_intakes):
-                nutrient_intakes[nutrient] += food_nutrients[i] * amount / 100  # Assuming amount is in grams
-            total_calories_intake += food_nutrients[11] * amount / 100
+        # Map fetched nutrient data to a dictionary
+        nutrient_intakes = {
+            "Vitamin_A_mg": total_daily_consumption[0] or 0,
+            "Vitamin_C_mg": total_daily_consumption[1] or 0,
+            "Vitamin_D_mg": total_daily_consumption[2] or 0,
+            "Vitamin_E_mg": total_daily_consumption[3] or 0,
+            "Vitamin_K_mg": total_daily_consumption[4] or 0,
+            "Thiamin_mg": total_daily_consumption[5] or 0,
+            "Riboflavin_mg": total_daily_consumption[6] or 0,
+            "Niacin_mg": total_daily_consumption[7] or 0,
+            "Vitamin_B6_mg": total_daily_consumption[8] or 0,
+            "Vitamin_B12_mg": total_daily_consumption[9] or 0,
+            "Pantothenic_acid_mg": total_daily_consumption[10] or 0,
+        }
+        total_calories_intake = total_daily_consumption[11] or 0
 
-    # Calculate the daily gap (deficiencies and excesses)
-    daily_gap = {}
-    for nutrient, recommended_value in recommended_nutrients.items():
-        intake = nutrient_intakes.get(nutrient, 0)
-        if intake < recommended_value:
-            daily_gap[nutrient] = {"deficiency": recommended_value - intake, "excess": 0}
-        elif intake > recommended_value:
-            daily_gap[nutrient] = {"deficiency": 0, "excess": intake - recommended_value}
+        # Calculate the daily gap
+        daily_gap = {}
+        for nutrient, recommended_value in recommended_nutrients.items():
+            intake = nutrient_intakes.get(nutrient, 0)
+            if intake < recommended_value:
+                daily_gap[nutrient] = {"deficiency": recommended_value - intake, "excess": 0}
+            elif intake > recommended_value:
+                daily_gap[nutrient] = {"deficiency": 0, "excess": intake - recommended_value}
+            else:
+                daily_gap[nutrient] = {"deficiency": 0, "excess": 0}
+
+        if total_calories_intake < desired_calories:
+            daily_gap["Caloric_Value_kcal"] = {
+                "deficiency": desired_calories - total_calories_intake,
+                "excess": 0,
+            }
         else:
-            daily_gap[nutrient] = {"deficiency": 0, "excess": 0}
-
-    if desired_calories < total_calories_intake:
-        daily_gap["Caloric_Value_kcal"] = {"deficiency": 0, "excess": total_calories_intake-desired_calories}
-    else:
-        daily_gap["Caloric_Value_kcal"] = {"deficiency": desired_calories-total_calories_intake, "excess": 0}
+            daily_gap["Caloric_Value_kcal"] = {
+                "deficiency": 0,
+                "excess": total_calories_intake - desired_calories,
+            }
 
 
-    # Close the database connection
-    cursor.close()
-    db.close()
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
 
-    print("daily gap of the user in the given date")
-    print("user id: ", user_id)
-    print("date: ", date)
     return daily_gap
 
 
@@ -293,9 +301,60 @@ def recommand_food(defic_list):
     return recommendations
 
 
+def avg_consumption(user_id,period):
+    connection, cursor = connect_to_db()
+    query = """
+    SELECT 
+        ROUND(AVG(e.amount * f.Caloric_Value_kcal / 100), 2) AS Avg_Calories,
+        ROUND(AVG(e.amount * f.Protein_g / 100), 2) AS Avg_Protein_g,
+        ROUND(AVG(e.amount * f.Dietary_Fiber_g / 100), 2) AS Avg_Fiber_g,
+        ROUND(AVG(e.amount * f.Vitamin_A_mg / 100), 2) AS Avg_Vitamin_A_mg,
+        ROUND(AVG(e.amount * f.Vitamin_C_mg / 100), 2) AS Avg_Vitamin_C_mg,
+        ROUND(AVG(e.amount * f.Vitamin_D_mg / 100), 2) AS Avg_Vitamin_D_mg,
+        ROUND(AVG(e.amount * f.Vitamin_E_mg / 100), 2) AS Avg_Vitamin_E_mg,
+        ROUND(AVG(e.amount * f.Vitamin_K_mg / 100), 2) AS Avg_Vitamin_K_mg,
+        ROUND(AVG(e.amount * f.Thiamin_mg / 100), 2) AS Avg_Thiamin_mg,
+        ROUND(AVG(e.amount * f.Riboflavin_mg / 100), 2) AS Avg_Riboflavin_mg,
+        ROUND(AVG(e.amount * f.Niacin_mg / 100), 2) AS Avg_Niacin_mg,
+        ROUND(AVG(e.amount * f.Vitamin_B6_mg / 100), 2) AS Avg_Vitamin_B6_mg,
+        ROUND(AVG(e.amount * f.Vitamin_B12_mg / 100), 2) AS Avg_Vitamin_B12_mg,
+        ROUND(AVG(e.amount * f.Pantothenic_acid_mg / 100), 2) AS Avg_Pantothenic_Acid_mg
+    FROM 
+        eat e
+    JOIN 
+        food f ON e.food_name = f.food_name
+    WHERE 
+        e.user_id = %s 
+        AND e.date_of_eat >= DATE_SUB(NOW(), INTERVAL %s DAY);
+    """
+    cursor.execute(query, (user_id,period))
+    consumption = cursor.fetchone()
+    if consumption:
+        return {
+            "Avg_Calories": consumption[0],
+            "Avg_Protein_g": consumption[1],
+            "Avg_Fiber_g": consumption[2],
+            "Avg_Vitamin_A_mg": consumption[3],
+            "Avg_Vitamin_C_mg": consumption[4],
+            "Avg_Vitamin_D_mg": consumption[5],
+            "Avg_Vitamin_E_mg": consumption[6],
+            "Avg_Vitamin_K_mg": consumption[7],
+            "Avg_Thiamin_mg": consumption[8],
+            "Avg_Riboflavin_mg": consumption[9],
+            "Avg_Niacin_mg": consumption[10],
+            "Avg_Vitamin_B6_mg": consumption[11],
+            "Avg_Vitamin_B12_mg": consumption[12],
+            "Avg_Pantothenic_Acid_mg": consumption[13]
+        }
+    else:
+        # If no data is found for the user in the last 7 days
+        return None
+
+
 def statistics(user_id):
-    # return the statistics of the user
-    return 0;
+    avg_week = avg_week_consumption(user_id,7)
+    avg_month = avg_week_consumption(user_id,30)
+
 
 
 def trends(user_id):
