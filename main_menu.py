@@ -439,7 +439,160 @@ def recommendations_window():
 
 
 def statistics_window():
-    messagebox.showinfo("Statistics", "Statistics feature is under development.")
+    """
+    Displays a statistics window showing all average nutrient values.
+    """
+    try:
+        user_id = shared.user_id  # Assuming shared.user_id is available
+
+        # Nutrient names corresponding to the returned values from avg_consumption
+        nutrient_names = [
+            "Avg Calories",
+            "Avg Protein (g)",
+            "Avg Fiber (g)",
+            "Avg Cholesterol (mg)",
+            "Avg Sodium (g)",
+            "Avg Water (g)",
+            "Avg Vitamin A (mg)",
+            "Avg Thiamin (mg)",
+            "Avg Folic Acid (mg)",
+            "Avg Vitamin B12 (mg)",
+            "Avg Riboflavin (mg)",
+            "Avg Niacin (mg)",
+            "Avg Pantothenic Acid (mg)",
+            "Avg Vitamin B6 (mg)",
+            "Avg Vitamin C (mg)",
+            "Avg Vitamin D (mg)",
+            "Avg Vitamin E (mg)",
+            "Avg Vitamin K (mg)",
+            "Avg Calcium (mg)",
+            "Avg Copper (mg)",
+            "Avg Iron (mg)",
+            "Avg Magnesium (mg)",
+            "Avg Manganese (mg)",
+            "Avg Phosphorus (mg)",
+            "Avg Potassium (mg)",
+            "Avg Selenium (mg)",
+            "Avg Zinc (mg)"
+        ]
+
+        def show_avg(period):
+            """
+            Displays average consumption data for the selected period.
+            """
+            try:
+                stats = avg_consumption(user_id, period)  # Replace with your actual function
+                if not stats or len(stats) != len(nutrient_names):
+                    raise ValueError("Invalid or missing data for the selected period.")
+
+                # Clear previous data
+                for widget in data_frame.winfo_children():
+                    widget.destroy()
+
+                # Display the stats dynamically
+                for i, (name, value) in enumerate(zip(nutrient_names, stats)):
+                    tk.Label(
+                        data_frame,
+                        text=f"{name}:",
+                        font=("Helvetica", 12, "bold"),
+                        bg="#f0f8ff",
+                        anchor="w"
+                    ).grid(row=i, column=0, sticky="w", padx=10, pady=5)
+
+                    tk.Label(
+                        data_frame,
+                        text=f"{value}",
+                        font=("Helvetica", 12),
+                        bg="#f0f8ff",
+                        anchor="e"
+                    ).grid(row=i, column=1, sticky="e", padx=10, pady=5)
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not retrieve data: {str(e)}")
+
+        # Create the statistics window
+        stats_window = tk.Toplevel()
+        stats_window.title("User Statistics")
+        stats_window.geometry("500x600")
+        stats_window.configure(bg="#f0f8ff")
+
+        # Title label
+        tk.Label(
+            stats_window,
+            text="User Statistics",
+            font=("Helvetica", 16, "bold"),
+            bg="#4682b4",
+            fg="white",
+            pady=10
+        ).pack(fill=tk.X)
+
+        # Sub-title
+        tk.Label(
+            stats_window,
+            text="Select a time period to view averages",
+            font=("Helvetica", 12),
+            bg="#f0f8ff"
+        ).pack(pady=10)
+
+        # Frame for buttons
+        button_frame = tk.Frame(stats_window, bg="#f0f8ff")
+        button_frame.pack(pady=10)
+
+        tk.Button(
+            button_frame,
+            text="Weekly Averages",
+            command=lambda: show_avg(7),
+            font=("Helvetica", 10),
+            bg="#4caf50",
+            fg="white",
+            padx=10,
+            pady=5
+        ).grid(row=0, column=0, padx=10)
+
+        tk.Button(
+            button_frame,
+            text="Monthly Averages",
+            command=lambda: show_avg(30),
+            font=("Helvetica", 10),
+            bg="#4caf50",
+            fg="white",
+            padx=10,
+            pady=5
+        ).grid(row=0, column=1, padx=10)
+
+        # Scrollable frame for data
+        scroll_frame = tk.Frame(stats_window, bg="#f0f8ff")
+        scroll_frame.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
+
+        scrollbar = tk.Scrollbar(scroll_frame, orient=tk.VERTICAL)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        canvas = tk.Canvas(scroll_frame, bg="#f0f8ff", yscrollcommand=scrollbar.set)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.config(command=canvas.yview)
+
+        data_frame = tk.Frame(canvas, bg="#f0f8ff")
+        canvas.create_window((0, 0), window=data_frame, anchor="nw")
+
+        def configure_canvas(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        data_frame.bind("<Configure>", configure_canvas)
+
+        # Close button
+        tk.Button(
+            stats_window,
+            text="Close",
+            command=stats_window.destroy,
+            font=("Helvetica", 10, "bold"),
+            bg="#d32f2f",
+            fg="white",
+            padx=10,
+            pady=5
+        ).pack(pady=20)
+
+    except Exception as e:
+        messagebox.showerror("Error", f"Could not open statistics window: {str(e)}")
+
 
 
 def trends_window():

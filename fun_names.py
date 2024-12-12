@@ -246,64 +246,40 @@ def recommand_food_for_nutrient(nutrient):
     return results
 
 
-def recommand_food(defic_list):
-    """
-    Recommend top 2 foods for each nutrient in the deficiency list.
-
-    Parameters:
-    - defic_list (list): list of  nutrients (e.g., 'Vitamin_A_mg')
-
-    Returns:
-    - recommendations (dict): Dictionary where keys are nutrients, and values
-      are lists of top 2 food names that are richest in that nutrient.
-    """
-
-    connection, cursor = connect_to_db()
-    recommendations = {}
-    try:
-        for nutrient in defic_list:
-            # Query top 2 foods based on the nutrient
-            query = f"""
-                  SELECT food_name, {nutrient}
-                  FROM food
-                  ORDER BY {nutrient} DESC
-                  LIMIT 2;
-              """
-            cursor.execute(query)
-            results = cursor.fetchall()
-
-            # Extract food names
-            food_names = [row[0] for row in results]
-            recommendations[nutrient] = food_names
-
-
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        cursor.close()
-        connection.close()
-
-    return recommendations
-
 
 def avg_consumption(user_id, period):
     connection, cursor = connect_to_db()
     query = """
     SELECT 
-        ROUND(AVG(e.amount * f.Caloric_Value_kcal / 100), 2) AS Avg_Calories,
-        ROUND(AVG(e.amount * f.Protein_g / 100), 2) AS Avg_Protein_g,
-        ROUND(AVG(e.amount * f.Dietary_Fiber_g / 100), 2) AS Avg_Fiber_g,
-        ROUND(AVG(e.amount * f.Vitamin_A_mg / 100), 2) AS Avg_Vitamin_A_mg,
-        ROUND(AVG(e.amount * f.Vitamin_C_mg / 100), 2) AS Avg_Vitamin_C_mg,
-        ROUND(AVG(e.amount * f.Vitamin_D_mg / 100), 2) AS Avg_Vitamin_D_mg,
-        ROUND(AVG(e.amount * f.Vitamin_E_mg / 100), 2) AS Avg_Vitamin_E_mg,
-        ROUND(AVG(e.amount * f.Vitamin_K_mg / 100), 2) AS Avg_Vitamin_K_mg,
-        ROUND(AVG(e.amount * f.Thiamin_mg / 100), 2) AS Avg_Thiamin_mg,
-        ROUND(AVG(e.amount * f.Riboflavin_mg / 100), 2) AS Avg_Riboflavin_mg,
-        ROUND(AVG(e.amount * f.Niacin_mg / 100), 2) AS Avg_Niacin_mg,
-        ROUND(AVG(e.amount * f.Vitamin_B6_mg / 100), 2) AS Avg_Vitamin_B6_mg,
-        ROUND(AVG(e.amount * f.Vitamin_B12_mg / 100), 2) AS Avg_Vitamin_B12_mg,
-        ROUND(AVG(e.amount * f.Pantothenic_acid_mg / 100), 2) AS Avg_Pantothenic_Acid_mg
+ROUND(AVG(e.amount * f.Caloric_Value_kcal / 100), 2) AS Avg_Calories,
+ROUND(AVG(e.amount * f.Protein_g / 100), 2) AS Avg_Protein_g,
+ROUND(AVG(e.amount * f.Dietary_Fiber_g / 100), 2) AS Avg_Fiber_g,
+ROUND(AVG(e.amount * f.Cholesterol_mg / 100), 2) AS Avg_Cholesterol_mg,
+ROUND(AVG(e.amount * f.Sodium_g / 100), 2) AS Avg_Sodium_g,
+ROUND(AVG(e.amount * f.Water_g / 100), 2) AS Avg_Water_g,
+ROUND(AVG(e.amount * f.Vitamin_A_mg / 100), 2) AS Avg_Vitamin_A_mg,
+ROUND(AVG(e.amount * f.Thiamin_mg / 100), 2) AS Avg_Thiamin_mg,
+ROUND(AVG(e.amount * f.Folic_Acid_mg / 100), 2) AS Avg_Folic_Acid_mg,
+ROUND(AVG(e.amount * f.Vitamin_B12_mg / 100), 2) AS Avg_Vitamin_B12_mg,
+ROUND(AVG(e.amount * f.Riboflavin_mg / 100), 2) AS Avg_Riboflavin_mg,
+ROUND(AVG(e.amount * f.Niacin_mg / 100), 2) AS Avg_Niacin_mg,
+ROUND(AVG(e.amount * f.Pantothenic_Acid_mg / 100), 2) AS Avg_Pantothenic_Acid_mg,
+ROUND(AVG(e.amount * f.Vitamin_B6_mg / 100), 2) AS Avg_Vitamin_B6_mg,
+ROUND(AVG(e.amount * f.Vitamin_C_mg / 100), 2) AS Avg_Vitamin_C_mg,
+ROUND(AVG(e.amount * f.Vitamin_D_mg / 100), 2) AS Avg_Vitamin_D_mg,
+ROUND(AVG(e.amount * f.Vitamin_E_mg / 100), 2) AS Avg_Vitamin_E_mg,
+ROUND(AVG(e.amount * f.Vitamin_K_mg / 100), 2) AS Avg_Vitamin_K_mg,
+ROUND(AVG(e.amount * f.Calcium_mg / 100), 2) AS Avg_Calcium_mg,
+ROUND(AVG(e.amount * f.Copper_mg / 100), 2) AS Avg_Copper_mg,
+ROUND(AVG(e.amount * f.Iron_mg / 100), 2) AS Avg_Iron_mg,
+ROUND(AVG(e.amount * f.Magnesium_mg / 100), 2) AS Avg_Magnesium_mg,
+ROUND(AVG(e.amount * f.Manganese_mg / 100), 2) AS Avg_Manganese_mg,
+ROUND(AVG(e.amount * f.Phosphorus_mg / 100), 2) AS Avg_Phosphorus_mg,
+ROUND(AVG(e.amount * f.Potassium_mg / 100), 2) AS Avg_Potassium_mg,
+ROUND(AVG(e.amount * f.Selenium_mg / 100), 2) AS Avg_Selenium_mg,
+ROUND(AVG(e.amount * f.Zinc_mg / 100), 2) AS Avg_Zinc_mg
+
+        
     FROM 
         eat e
     JOIN 
@@ -317,10 +293,6 @@ def avg_consumption(user_id, period):
     return consumption
 
 
-
-def statistics(user_id):
-    avg_week = avg_consumption(user_id, 7)
-    avg_month = avg_consumption(user_id, 30)
 
 
 def trends(user_id):
