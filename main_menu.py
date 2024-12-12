@@ -226,6 +226,9 @@ def insert_eaten_window():
     ttk.Button(food_window, text="Submit", command=submit_food).pack(pady=20)
 
 
+def blood_test():
+
+
 def recommendations_window():
     messagebox.showinfo("Recommendations", "Recommendations feature is under development.")
 
@@ -255,6 +258,7 @@ def open_main_menu():
     button_style.configure("TButton", font=("Helvetica", 12), padding=5)
 
     ttk.Button(main_menu, text="View Daily Gap", command=daily_gap_window, width=25).pack(pady=10)
+    ttk.Button(main_menu, text="Deficiencies From Blood Test", command=blood_test, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Insert Eaten Food", command=insert_eaten_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="View Recommendations", command=recommendations_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="View Statistics", command=statistics_window, width=25).pack(pady=10)

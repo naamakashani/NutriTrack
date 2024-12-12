@@ -118,7 +118,7 @@ def insert_eaten(food, amount, user_id, date_of_eat):
             return 0
     except Exception as e:
         connection.rollback()
-        return f"An error occurred: {e}"
+        return 0
 
 
 def create_new_team(team_name):
