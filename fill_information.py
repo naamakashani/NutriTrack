@@ -14,7 +14,7 @@ def connect_to_db():
         print("Connected to the database")
         return connection, cursor
     except Exception as e:
-        print("An error occurred:", e)
+        print("An error occurred when connecting to the database:")
         return None, None
 
 
@@ -52,7 +52,7 @@ def life_stage_group_load(connection, cursor):
         connection.commit()
         print("life_stage_group_load inserted successfully.")
     except Exception as e:
-        print("An error occurred:", e)
+        print("An error occurred while inserting life_stage_group_load")
         connection.rollback()  # Rollback in case of error
 
 def insert_teams(connection, cursor):
@@ -147,7 +147,7 @@ def create_users(connection, cursor):
         print("Users created successfully")
 
     except Exception as e:
-        print("An error occurred:", e)
+        print("An error occurred when inserting users")
         connection.rollback()
 
 
@@ -168,7 +168,7 @@ def insert_belong_teams(connection, cursor):
 
         print("Users assigned to groups successfully")
     except Exception as e:
-        print("An error occurred:", e)
+        print("An error occurred: when users assigned to groups")
         connection.rollback()
 
 
@@ -205,7 +205,7 @@ def load_food_data_big(connection, cursor):
         connection.commit()
         print("Rows with NULL food_name deleted successfully.")
     except Exception as e:
-        print("An error occurred:", e)
+        print("An error occured while inserting the big data")
         connection.rollback()  # Rollback in case of error
 
 
@@ -255,7 +255,7 @@ def convert_scale(connection, cursor):
         print("Data scale conversion completed successfully.")
 
     except Exception as e:
-        print("An error occurred:", e)
+        print("An error occurred: when converting the scale")
         connection.rollback()
 
 def load_food_data_small(connection, cursor):
@@ -311,7 +311,7 @@ def load_food_data_small(connection, cursor):
         connection.commit()
         print("Data small inserted successfully.")
     except Exception as e:
-        print("An error occurred:", e)
+        print("An error occurred: when inserting the small data")
         connection.rollback()  # Rollback in case of error
 
 def fill_information():
