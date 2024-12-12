@@ -5,11 +5,9 @@ from PIL import Image, ImageTk  # For handling the logo image
 import shared
 from fun_names import *
 from tkinter import font
-import tkinter as tk
 from tkinter import ttk
-
-
 import tkinter as tk
+
 
 def display_food_for_nutrient(nutrient_name):
     # Create a new window
@@ -227,6 +225,158 @@ def insert_eaten_window():
 
 
 def blood_test():
+    """
+    Allows the user to select their deficiencies after a blood test and opens a window
+    with buttons for each selected deficiency, calling display_food_for_nutrient.
+    """
+    # List of nutrients
+    nutrient_deficiencies = [
+        "Protein_g",
+        "Dietary_Fiber_g",
+        "Cholesterol_mg",
+        "Sodium_g",
+        "Water_g",
+        "Vitamin_A_mg",
+        "Thiamin_mg",
+        "Folic_acid_mg",
+        "Vitamin_B12_mg",
+        "Riboflavin_mg",
+        "Niacin_mg",
+        "Pantothenic_acid_mg",
+        "Vitamin_B6_mg",
+        "Vitamin_C_mg",
+        "Vitamin_D_mg",
+        "Vitamin_E_mg",
+        "Vitamin_K_mg",
+        "Calcium_mg",
+        "Copper_mg",
+        "Iron_mg",
+        "Magnesium_mg",
+        "Manganese_mg",
+        "Phosphorus_mg",
+        "Potassium_mg",
+        "Selenium_mg",
+        "Zinc_mg"
+    ]
+
+    # Create a new Tkinter window
+    test_window = tk.Toplevel()
+    test_window.title("Select Deficiencies")
+    test_window.geometry("400x600")  # Adjust the size as needed
+    test_window.configure(bg="#f7f9fc")
+
+    # Title label
+    tk.Label(
+        test_window,
+        text="Select Nutritional Deficiencies",
+        font=("Helvetica", 14, "bold"),
+        bg="#f7f9fc"
+    ).pack(pady=10)
+
+    # Scrollable frame for nutrient checkboxes
+    scroll_frame = tk.Frame(test_window, bg="#f7f9fc")
+    scroll_frame.pack(expand=True, fill=tk.BOTH, padx=20, pady=10)
+
+    # Create a scrollbar
+    scrollbar = tk.Scrollbar(scroll_frame, orient=tk.VERTICAL)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    # Create a canvas for scrolling
+    canvas = tk.Canvas(scroll_frame, bg="#f7f9fc", yscrollcommand=scrollbar.set)
+    canvas.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+    scrollbar.config(command=canvas.yview)
+
+    # Frame to hold checkboxes
+    checkbox_frame = tk.Frame(canvas, bg="#f7f9fc")
+    canvas.create_window((0, 0), window=checkbox_frame, anchor="nw")
+
+    # List to hold the selected deficiencies
+    selected_deficiencies = []
+
+    # Function to toggle deficiencies in the list
+    def toggle_deficiency(nutrient):
+        if nutrient in selected_deficiencies:
+            selected_deficiencies.remove(nutrient)
+        else:
+            selected_deficiencies.append(nutrient)
+
+    # Create checkboxes for each nutrient
+    for nutrient in nutrient_deficiencies:
+        var = tk.BooleanVar()
+        checkbox = tk.Checkbutton(
+            checkbox_frame,
+            text=nutrient.replace("_", " ").title(),
+            variable=var,
+            onvalue=True,
+            offvalue=False,
+            bg="#f7f9fc",
+            anchor="w",
+            command=lambda n=nutrient: toggle_deficiency(n)
+        )
+        checkbox.pack(anchor="w", padx=10, pady=5)
+
+    # Function to display buttons for selected deficiencies
+    def show_deficiency_buttons():
+        if not selected_deficiencies:
+            messagebox.showwarning("Warning", "No deficiencies selected!")
+            return
+
+        # Create a new window for the buttons
+        button_window = tk.Toplevel()
+        button_window.title("Deficiency Recommendations")
+        button_window.geometry("400x600")
+        button_window.configure(bg="#f7f9fc")
+
+        # Title label
+        tk.Label(
+            button_window,
+            text="Recommendations for Selected Deficiencies",
+            font=("Helvetica", 12, "bold"),
+            bg="#f7f9fc"
+        ).pack(pady=10)
+
+        # Create a button for each selected deficiency
+        for deficiency in selected_deficiencies:
+            button = tk.Button(
+                button_window,
+                text=f"{deficiency.replace('_', ' ').title()}",
+                font=("Helvetica", 10),
+                command=lambda n=deficiency: display_food_for_nutrient(n),
+                bg="#f7f9fc",
+                fg="black",
+                padx=10,
+                pady=5
+            )
+            button.pack(pady=10)
+
+        # Close button
+        close_button = tk.Button(
+            button_window,
+            text="Close",
+            command=button_window.destroy,
+            font=("Helvetica", 10),
+            bg="#f7f9fc",
+            fg="black"
+        )
+        close_button.pack(pady=20)
+
+    # Submit button
+    submit_button = tk.Button(
+        test_window,
+        text="Submit",
+        command=show_deficiency_buttons,
+        font=("Helvetica", 10, "bold"),
+        bg="#4caf50",
+        fg="white"
+    )
+    submit_button.pack(pady=20)
+
+    # Configure the canvas to update the scroll region
+    def configure_canvas(event):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    checkbox_frame.bind("<Configure>", configure_canvas)
+
 
 
 def recommendations_window():
