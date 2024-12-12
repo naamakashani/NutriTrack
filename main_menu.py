@@ -13,7 +13,7 @@ def display_food_for_nutrient(nutrient_name):
     # Create a new window
     new_window = tk.Toplevel()
     new_window.title(f"Food Recommendations for {nutrient_name}")
-    new_window.geometry("300x300")  # Adjust size as needed
+    new_window.geometry("500x500")  # Adjust size as needed
 
     # Get recommendations
     recommendations = recommand_food_for_nutrient(nutrient_name)  # Assuming this function returns a list of foods or text
@@ -223,46 +223,78 @@ def insert_eaten_window():
 
     ttk.Button(food_window, text="Submit", command=submit_food).pack(pady=20)
 
-
 def blood_test():
     """
     Allows the user to select their deficiencies after a blood test and opens a window
     with buttons for each selected deficiency, calling display_food_for_nutrient.
     """
-    # List of nutrients
+    import tkinter as tk
+    from tkinter import messagebox
+
+    # List of nutrients (clean display names)
     nutrient_deficiencies = [
-        "Protein_g",
-        "Dietary_Fiber_g",
-        "Cholesterol_mg",
-        "Sodium_g",
-        "Water_g",
-        "Vitamin_A_mg",
-        "Thiamin_mg",
-        "Folic_acid_mg",
-        "Vitamin_B12_mg",
-        "Riboflavin_mg",
-        "Niacin_mg",
-        "Pantothenic_acid_mg",
-        "Vitamin_B6_mg",
-        "Vitamin_C_mg",
-        "Vitamin_D_mg",
-        "Vitamin_E_mg",
-        "Vitamin_K_mg",
-        "Calcium_mg",
-        "Copper_mg",
-        "Iron_mg",
-        "Magnesium_mg",
-        "Manganese_mg",
-        "Phosphorus_mg",
-        "Potassium_mg",
-        "Selenium_mg",
-        "Zinc_mg"
+        "Protein",
+        "Dietary Fiber",
+        "Cholesterol",
+        "Sodium",
+        "Water",
+        "Vitamin A",
+        "Thiamin",
+        "Folic Acid",
+        "Vitamin B12",
+        "Riboflavin",
+        "Niacin",
+        "Pantothenic Acid",
+        "Vitamin B6",
+        "Vitamin C",
+        "Vitamin D",
+        "Vitamin E",
+        "Vitamin K",
+        "Calcium",
+        "Copper",
+        "Iron",
+        "Magnesium",
+        "Manganese",
+        "Phosphorus",
+        "Potassium",
+        "Selenium",
+        "Zinc"
     ]
+
+    # Mapping of deficiencies to their corresponding database field names
+    deficiency_mapping = {
+        "Protein": "Protein_g",
+        "Dietary Fiber": "Dietary_Fiber_g",
+        "Cholesterol": "Cholesterol_mg",
+        "Sodium": "Sodium_g",
+        "Water": "Water_g",
+        "Vitamin A": "Vitamin_A_mg",
+        "Thiamin": "Thiamin_mg",
+        "Folic Acid": "Folic_acid_mg",
+        "Vitamin B12": "Vitamin_B12_mg",
+        "Riboflavin": "Riboflavin_mg",
+        "Niacin": "Niacin_mg",
+        "Pantothenic Acid": "Pantothenic_acid_mg",
+        "Vitamin B6": "Vitamin_B6_mg",
+        "Vitamin C": "Vitamin_C_mg",
+        "Vitamin D": "Vitamin_D_mg",
+        "Vitamin E": "Vitamin_E_mg",
+        "Vitamin K": "Vitamin_K_mg",
+        "Calcium": "Calcium_mg",
+        "Copper": "Copper_mg",
+        "Iron": "Iron_mg",
+        "Magnesium": "Magnesium_mg",
+        "Manganese": "Manganese_mg",
+        "Phosphorus": "Phosphorus_mg",
+        "Potassium": "Potassium_mg",
+        "Selenium": "Selenium_mg",
+        "Zinc": "Zinc_mg"
+    }
 
     # Create a new Tkinter window
     test_window = tk.Toplevel()
     test_window.title("Select Deficiencies")
-    test_window.geometry("400x600")  # Adjust the size as needed
+    test_window.geometry("400x600")
     test_window.configure(bg="#f7f9fc")
 
     # Title label
@@ -283,7 +315,7 @@ def blood_test():
 
     # Create a canvas for scrolling
     canvas = tk.Canvas(scroll_frame, bg="#f7f9fc", yscrollcommand=scrollbar.set)
-    canvas.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
     scrollbar.config(command=canvas.yview)
 
     # Frame to hold checkboxes
@@ -305,7 +337,7 @@ def blood_test():
         var = tk.BooleanVar()
         checkbox = tk.Checkbutton(
             checkbox_frame,
-            text=nutrient.replace("_", " ").title(),
+            text=nutrient,
             variable=var,
             onvalue=True,
             offvalue=False,
@@ -323,42 +355,63 @@ def blood_test():
 
         # Create a new window for the buttons
         button_window = tk.Toplevel()
-        button_window.title("Deficiency Recommendations")
+        button_window.title("Food Recommendations Based On Blood Test")
         button_window.geometry("400x600")
         button_window.configure(bg="#f7f9fc")
 
-        # Title label
+        # Title label for the button window
         tk.Label(
             button_window,
-            text="Recommendations for Selected Deficiencies",
+            text="Food Recommendations Based On Blood Test",
             font=("Helvetica", 12, "bold"),
             bg="#f7f9fc"
         ).pack(pady=10)
 
+        # Add a scrollbar to the button window
+        scroll_frame = tk.Frame(button_window, bg="#f7f9fc")
+        scroll_frame.pack(fill=tk.BOTH, expand=True)
+
+        scrollbar = tk.Scrollbar(scroll_frame, orient=tk.VERTICAL)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        canvas = tk.Canvas(scroll_frame, bg="#f7f9fc", yscrollcommand=scrollbar.set)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.config(command=canvas.yview)
+
+        button_frame = tk.Frame(canvas, bg="#f7f9fc")
+        canvas.create_window((0, 0), window=button_frame, anchor="nw")
+
         # Create a button for each selected deficiency
         for deficiency in selected_deficiencies:
+            nutrient_field = deficiency_mapping.get(deficiency, deficiency)  # Map to database field
             button = tk.Button(
-                button_window,
-                text=f"{deficiency.replace('_', ' ').title()}",
+                button_frame,
+                text=deficiency,  # Display the clean name
                 font=("Helvetica", 10),
-                command=lambda n=deficiency: display_food_for_nutrient(n),
-                bg="#f7f9fc",
-                fg="black",
+                command=lambda n=nutrient_field: display_food_for_nutrient(n),  # Pass the correct field name
+                bg="gray", # Green for deficiency buttons
+                fg="black",  # Black text
                 padx=10,
                 pady=5
             )
-            button.pack(pady=10)
+            button.pack(pady=10, side=tk.TOP, anchor="center")  # Ensure buttons are centered
 
         # Close button
         close_button = tk.Button(
-            button_window,
+            button_frame,
             text="Close",
             command=button_window.destroy,
             font=("Helvetica", 10),
-            bg="#f7f9fc",
-            fg="black"
+            bg="#d32f2f",  # Red background for the close button
+            fg="white"  # White text for contrast
         )
-        close_button.pack(pady=20)
+        close_button.pack(pady=20, side=tk.TOP, anchor="center")  # Center the close button
+
+        # Configure the canvas to update the scroll region
+        def configure_canvas(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        button_frame.bind("<Configure>", configure_canvas)
 
     # Submit button
     submit_button = tk.Button(
@@ -366,8 +419,8 @@ def blood_test():
         text="Submit",
         command=show_deficiency_buttons,
         font=("Helvetica", 10, "bold"),
-        bg="#4caf50",
-        fg="white"
+        bg="#4caf50",  # Green for the submit button
+        fg="white"  # White text
     )
     submit_button.pack(pady=20)
 
@@ -376,6 +429,8 @@ def blood_test():
         canvas.configure(scrollregion=canvas.bbox("all"))
 
     checkbox_frame.bind("<Configure>", configure_canvas)
+
+
 
 
 
