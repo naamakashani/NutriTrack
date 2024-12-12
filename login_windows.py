@@ -20,6 +20,10 @@ def sign_in():
             messagebox.showerror("Error", "All fields are required!")
             return
 
+        if check_user_exists(user_id) != 0:  # Assuming `check_user_exists` returns 0 if the user does not exist
+            messagebox.showerror("Error", "User ID already exists! Please log in instead.")
+            return
+
         try:
             # Call the insert_user function
             insert_user(user_id, gender, age, subgroup, user_name, weight, height, activity_level)
