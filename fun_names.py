@@ -1,13 +1,13 @@
 import pymysql
 from collections import defaultdict
 import re
-
+from tkinter import messagebox
 
 def connect_to_db():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'Nn021099!'
+    password = 'Nn02'
     database = 'food_recommandation'
 
     try:
@@ -16,6 +16,7 @@ def connect_to_db():
         cursor = connection.cursor()
         return connection, cursor
     except pymysql.MySQLError as e:
+        messagebox.showerror("Error", "Connection to server failed.")
         print(f"Error connecting to database: {e}")
         raise  # Re-raise the exception after logging
 
@@ -42,6 +43,8 @@ def check_user_exists(user_id):
         # Close the cursor and connection
         cursor.close()
         connection.close()
+
+
 def insert_user(user_id, gender, age, subgroup, username, weight, height, activity_level):
     # Insert a new user into the user_profile table
     connection, cursor = connect_to_db()
@@ -170,21 +173,22 @@ def get_daily_gap(user_id, date):
     Calculate the daily gap of the user on the given date.
     Returns a dictionary of nutrient deficiencies and excesses, along with caloric gap.
     """
+
     try:
         connection, cursor = connect_to_db()
         cursor.execute(""" SELECT
-    daily.daily_Vitamin_A_mg - recom_user.Vitamin_A_mg AS Vitamin_A_gap,
-    daily.daily_Vitamin_C_mg - recom_user.Vitamin_C_mg AS Vitamin_C_gap,
-    daily.daily_Vitamin_D_mg - recom_user.Vitamin_D_mg AS Vitamin_D_gap,
-    daily.daily_Vitamin_E_mg - recom_user.Vitamin_E_mg AS Vitamin_E_gap,
-    daily.daily_Vitamin_K_mg - recom_user.Vitamin_K_mg AS Vitamin_K_gap,
-    daily.daily_Thiamin_mg - recom_user.Thiamin_mg AS Thiamin_gap,
-    daily.daily_Riboflavin_mg - recom_user.Riboflavin_mg AS Riboflavin_gap,
-    daily.daily_Niacin_mg - recom_user.Niacin_mg AS Niacin_gap,
-    daily.daily_Vitamin_B6_mg - recom_user.Vitamin_B6_mg AS Vitamin_B6_gap,
-    daily.daily_Vitamin_B12_mg - recom_user.Vitamin_B12_mg AS Vitamin_B12_gap,
-    daily.daily_Pantothenic_acid_mg - recom_user.Pantothenic_acid_mg AS Pantothenic_acid_gap,
-    daily.daily_Caloric_Value_kcal - recom_user.desired_calories AS Caloric_gap
+         ROUND(daily.daily_Vitamin_A_mg - recom_user.Vitamin_A_mg, 2),
+            ROUND(daily.daily_Vitamin_C_mg - recom_user.Vitamin_C_mg, 2),
+            ROUND(daily.daily_Vitamin_D_mg - recom_user.Vitamin_D_mg, 2),
+            ROUND(daily.daily_Vitamin_E_mg - recom_user.Vitamin_E_mg, 2),
+            ROUND(daily.daily_Vitamin_K_mg - recom_user.Vitamin_K_mg, 2),
+            ROUND(daily.daily_Thiamin_mg - recom_user.Thiamin_mg, 2),
+            ROUND(daily.daily_Riboflavin_mg - recom_user.Riboflavin_mg, 2),
+            ROUND(daily.daily_Niacin_mg - recom_user.Niacin_mg, 2),
+            ROUND(daily.daily_Vitamin_B6_mg - recom_user.Vitamin_B6_mg, 2),
+            ROUND(daily.daily_Vitamin_B12_mg - recom_user.Vitamin_B12_mg, 2),
+            ROUND(daily.daily_Pantothenic_acid_mg - recom_user.Pantothenic_acid_mg, 2),
+            ROUND(daily.daily_Caloric_Value_kcal - recom_user.desired_calories, 2)
         FROM (
             SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg,
                    Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg,
@@ -212,16 +216,20 @@ def get_daily_gap(user_id, date):
                       
         """, (user_id, user_id, date))
         daily_gap = cursor.fetchone()
-        print(daily_gap)
 
         # todo : check that it work gor negative gap
         # todo : check that this is good
 
     except Exception as e:
         print(f"Error: {e}")
+
     finally:
         cursor.close()
         connection.close()
+
+    # if all daily gaps are nan return nan
+    if all(v is None for v in daily_gap):
+        return None
     return daily_gap
 
 
@@ -244,7 +252,6 @@ def recommand_food_for_nutrient(nutrient):
         connection.close()
 
     return results
-
 
 
 def avg_consumption(user_id, period):
@@ -291,8 +298,6 @@ ROUND(AVG(e.amount * f.Zinc_mg / 100), 2) AS Avg_Zinc_mg
     cursor.execute(query, (user_id, period))
     consumption = cursor.fetchone()
     return consumption
-
-
 
 
 def trends(user_id):

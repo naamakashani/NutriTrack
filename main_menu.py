@@ -1,4 +1,5 @@
 import tkinter as tk
+from datetime import datetime
 from tkinter import ttk
 from tkinter import messagebox
 from PIL import Image, ImageTk  # For handling the logo image
@@ -90,7 +91,7 @@ def display_daily_gap(daily_gap):
     # Instructions label
     tk.Label(
         gap_display_window,
-        text="Excess values are in green, deficiencies are in red.",
+        text="Excess values are in black, deficiencies are in red.",
         font=("Helvetica", 10),
         bg="#f7f9fc",
         fg="gray"
@@ -144,6 +145,22 @@ def display_daily_gap(daily_gap):
     ).pack(pady=20)
 
 
+def is_valid_date(date):
+    """
+    Check if the given date is in the correct format (YYYY-MM-DD).
+
+    Arguments:
+    date -- a string representing a date
+
+    Returns:
+    True if the date is valid, False otherwise.
+    """
+    try:
+        # Attempt to parse the date
+        datetime.strptime(date, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
 
 def daily_gap_window():
     def submit_date():
@@ -154,6 +171,11 @@ def daily_gap_window():
             messagebox.showerror("Error", "Please enter a date!")
         else:
             try:
+                #check that the date is valid format
+                if not is_valid_date(date):
+                    messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.")
+                    return
+
                 # list of all the gaps for the user on the given date
                 daily_gap = get_daily_gap(shared.user_id, date)
                 if not daily_gap:
@@ -192,6 +214,14 @@ def insert_eaten_window():
         food_name = food_entry.get()
         amount = amount_entry.get()
         date = date_entry.get()
+        #check that the date is valid format
+        if not is_valid_date(date):
+            messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.")
+            return
+        #check that the amount is valid number
+        if not amount.isdigit():
+            messagebox.showerror("Error", "Amount should be a number!")
+            return
         flag = insert_eaten(food_name, amount, shared.user_id, date)
         if flag:
             messagebox.showinfo("Success", f"Food '{food_name}' added with amount {amount} g!")
@@ -622,5 +652,6 @@ def open_main_menu():
     ttk.Button(main_menu, text="View Statistics", command=statistics_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Track Trends", command=trends_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Team Comparison", command=comparison_window, width=25).pack(pady=10)
+
 
     main_menu.mainloop()

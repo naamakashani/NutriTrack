@@ -4,7 +4,6 @@ from fun_names import *
 from main_menu import open_main_menu
 import shared
 
-
 def sign_in():
     def submit_user_details():
         user_id = user_id_entry.get()
