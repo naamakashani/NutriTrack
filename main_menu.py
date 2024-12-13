@@ -750,6 +750,41 @@ def show_teams():
     root.mainloop()
 
 
+
+
+def create_team_window():
+    # Function to handle the creation of a team
+    def handle_create_team():
+        team_name = team_entry.get().strip()
+        if not team_name:
+            messagebox.showerror("Error", "Team name cannot be empty.")
+            return
+
+        result = create_new_team(team_name)
+        if result == 0:
+            messagebox.showinfo("Info", f"The team '{team_name}' already exists.")
+        else:
+            messagebox.showinfo("Success", f"Team '{team_name}' created successfully.")
+            new_team_window.destroy()
+
+    # Create the new team window
+    new_team_window = tk.Toplevel()
+    new_team_window.title("Create New Team")
+    new_team_window.geometry("400x400")
+    new_team_window.configure(bg="#f7f9fc")
+
+    # Add labels and entry widget for team name
+    tk.Label(new_team_window, text="Insert Team Name", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    ttk.Label(new_team_window, text="Team Name:", background="#f7f9fc").pack(pady=5)
+    team_entry = ttk.Entry(new_team_window, width=30)
+    team_entry.pack(pady=5)
+
+    # Add a button to create the team
+    create_button = ttk.Button(new_team_window, text="Create Team", command=handle_create_team)
+    create_button.pack(pady=20)
+
+
+
 def trends_window():
     messagebox.showinfo("Trends", "Trends feature is under development.")
 
@@ -762,7 +797,7 @@ def comparison_window():
 def open_main_menu():
     main_menu = tk.Tk()
     main_menu.title("Nutrition Tracker - Main Menu")
-    main_menu.geometry("800x600")
+    main_menu.geometry("600x800")
     main_menu.configure(bg="#eaf4fc")
 
     tk.Label(main_menu, text="Welcome to Nutrition Tracker!", font=("Helvetica", 18), bg="#eaf4fc").pack(pady=30)
@@ -778,6 +813,7 @@ def open_main_menu():
     ttk.Button(main_menu, text="Track Trends", command=trends_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Team Comparison", command=comparison_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Join Team", command=join_team_window, width=25).pack(pady=10)
-    ttk.Button(main_menu, text="Show my teams", command=show_teams, width=25).pack(pady=10)
+    ttk.Button(main_menu, text="Show My Teams", command=show_teams, width=25).pack(pady=10)
+    ttk.Button(main_menu, text="Create New Team", command=create_team_window, width=25).pack(pady=10)
 
     main_menu.mainloop()

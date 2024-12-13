@@ -130,14 +130,23 @@ def insert_eaten(food, amount, user_id, date_of_eat):
 def create_new_team(team_name):
     # Create a new team
     connection, cursor = connect_to_db()
+    check_query = "SELECT COUNT(*) FROM team WHERE team_name = %s"
     insert_query = "INSERT INTO team (team_name) VALUES (%s)"
-
+    flag = 1
     try:
-        # Execute the query with the provided values
+        # Check if the team already exists
+        cursor.execute(check_query, (team_name,))
+        result = cursor.fetchone()
+        if result[0] > 0:
+            print("Team already exists.")
+            flag = 0
+
+        # Insert the new team if it doesn't exist
         cursor.execute(insert_query, (team_name,))  # Ensure that team_name is passed as a tuple
 
         # Commit the transaction to save changes
         connection.commit()
+        print("Team created successfully.")
 
     except pymysql.MySQLError as e:
         # Handle exceptions (log the error or re-raise as needed)
@@ -147,6 +156,9 @@ def create_new_team(team_name):
         # Close the cursor and connection
         cursor.close()
         connection.close()
+        return flag
+
+
 def get_all_teams():
     # Show all teams
     connection, cursor = connect_to_db()
@@ -164,6 +176,7 @@ def get_all_teams():
     finally:
         cursor.close()
         connection.close()
+
 
 def user_join_team(user_id, team_id):
     connection, cursor = connect_to_db()
@@ -208,6 +221,8 @@ def get_teams_for_user(user_id):
     finally:
         cursor.close()
         connection.close()
+
+
 def join_team(groups):
     # Prepare the SQL query with placeholders
     insert_query = "INSERT INTO belong_team (team_id, user_id) VALUES (%s, %s)"
@@ -228,7 +243,6 @@ def join_team(groups):
         # Close the cursor and connection
         cursor.close()
         connection.close()
-
 
 
 def get_daily_gap(user_id, date):
@@ -361,7 +375,6 @@ ROUND(AVG(e.amount * f.Zinc_mg / 100), 2) AS Avg_Zinc_mg
     cursor.execute(query, (user_id, period))
     consumption = cursor.fetchone()
     return consumption
-
 
 
 def trends(user_id):
