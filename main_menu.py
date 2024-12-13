@@ -17,7 +17,8 @@ def display_food_for_nutrient(nutrient_name):
     new_window.geometry("500x500")  # Adjust size as needed
 
     # Get recommendations
-    recommendations = recommand_food_for_nutrient(nutrient_name)  # Assuming this function returns a list of foods or text
+    recommendations = recommand_food_for_nutrient(
+        nutrient_name)  # Assuming this function returns a list of foods or text
 
     # Add a label to display the nutrient name
     nutrient_label = tk.Label(
@@ -162,6 +163,7 @@ def is_valid_date(date):
     except ValueError:
         return False
 
+
 def daily_gap_window():
     def submit_date():
         # Get the date from the entry field
@@ -171,7 +173,7 @@ def daily_gap_window():
             messagebox.showerror("Error", "Please enter a date!")
         else:
             try:
-                #check that the date is valid format
+                # check that the date is valid format
                 if not is_valid_date(date):
                     messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.")
                     return
@@ -188,8 +190,6 @@ def daily_gap_window():
             except Exception as e:
                 # Handle any potential errors gracefully
                 messagebox.showerror("Error", f"An error occurred: {e}")
-
-
 
     # Create the daily gap window
     gap_window = tk.Toplevel()
@@ -214,11 +214,11 @@ def insert_eaten_window():
         food_name = food_entry.get()
         amount = amount_entry.get()
         date = date_entry.get()
-        #check that the date is valid format
+        # check that the date is valid format
         if not is_valid_date(date):
             messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.")
             return
-        #check that the amount is valid number
+        # check that the amount is valid number
         if not amount.isdigit():
             messagebox.showerror("Error", "Amount should be a number!")
             return
@@ -252,6 +252,7 @@ def insert_eaten_window():
     date_entry.pack(pady=5)
 
     ttk.Button(food_window, text="Submit", command=submit_food).pack(pady=20)
+
 
 def blood_test():
     """
@@ -419,7 +420,7 @@ def blood_test():
                 text=deficiency,  # Display the clean name
                 font=("Helvetica", 10),
                 command=lambda n=nutrient_field: display_food_for_nutrient(n),  # Pass the correct field name
-                bg="gray", # Green for deficiency buttons
+                bg="gray",  # Green for deficiency buttons
                 fg="black",  # Black text
                 padx=10,
                 pady=5
@@ -459,9 +460,6 @@ def blood_test():
         canvas.configure(scrollregion=canvas.bbox("all"))
 
     checkbox_frame.bind("<Configure>", configure_canvas)
-
-
-
 
 
 def recommendations_window():
@@ -624,6 +622,133 @@ def statistics_window():
         messagebox.showerror("Error", f"Could not open statistics window: {str(e)}")
 
 
+def submit_selected_teams(selected_teams):
+    # Simulate a user ID (replace with actual user ID logic)
+    user_id = shared.user_id
+    already_in_groups = []
+
+    for team_name, team_id in selected_teams:
+        if not user_join_team(user_id, team_id):
+            already_in_groups.append(team_name)
+
+    if already_in_groups:
+        messagebox.showerror("Join Team", f"You are already in these groups: {', '.join(already_in_groups)}")
+
+    successfully_joined = [team_name for team_name, team_id in selected_teams if team_name not in already_in_groups]
+    if successfully_joined:
+        messagebox.showinfo("Join Team", f"Successfully joined the selected teams: {', '.join(successfully_joined)}")
+
+
+def join_team_window():
+    teams = get_all_teams()
+    if not teams:
+        messagebox.showinfo("Join Team", "No teams available.")
+        return
+
+    # Create the main window
+    root = tk.Tk()
+    root.title("Choose Groups to Join")
+
+    # Create a title label
+    title_label = tk.Label(root, text="Choose Groups to Join", font=("Helvetica", 16, "bold"))
+    title_label.pack(pady=10)
+
+    # Create a frame for the canvas and scrollbar
+    frame = tk.Frame(root)
+    frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+    # Create a canvas
+    canvas = tk.Canvas(frame)
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    # Add a scrollbar
+    scrollbar = tk.Scrollbar(frame, orient=tk.VERTICAL, command=canvas.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Create an inner frame in the canvas
+    inner_frame = tk.Frame(canvas)
+    canvas.create_window((0, 0), window=inner_frame, anchor="nw")
+
+    # Store selected teams
+    selected_teams = []
+
+    def toggle_team(team_name, team_id):
+        team_tuple = (team_name, team_id)
+        if team_tuple in selected_teams:
+            selected_teams.remove(team_tuple)
+        else:
+            selected_teams.append(team_tuple)
+
+    # Create checkboxes for each team
+    for team_id, team_name in teams:
+        var = tk.BooleanVar()
+        checkbox = tk.Checkbutton(inner_frame, text=team_name, variable=var, command=lambda t=team_name, i=team_id: toggle_team(t, i))
+        checkbox.pack(anchor="w", padx=5, pady=2)
+
+    # Update the scroll region
+    def on_frame_configure(event):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    inner_frame.bind("<Configure>", on_frame_configure)
+
+    # Submit button
+    submit_button = tk.Button(root, text="Submit", command=lambda: submit_selected_teams(selected_teams), bg="green", fg="white", font=("Helvetica", 12, "bold"))
+    submit_button.pack(pady=10)
+
+    # Run the main loop
+    root.mainloop()
+
+
+
+def show_teams():
+    # Simulate a user ID (replace with actual user ID logic)
+    user_id = shared.user_id
+    teams = get_teams_for_user(user_id)
+
+    if not teams:
+        messagebox.showinfo("My Teams", "You are not part of any team.")
+        return
+
+    # Create the main window
+    root = tk.Tk()
+    root.title("My Teams")
+
+    # Create a title label
+    title_label = tk.Label(root, text="Teams You Are Part Of", font=("Helvetica", 16, "bold"))
+    title_label.pack(pady=10)
+
+    # Create a frame for the canvas and scrollbar
+    frame = tk.Frame(root)
+    frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+    # Create a canvas
+    canvas = tk.Canvas(frame)
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    # Add a scrollbar
+    scrollbar = tk.Scrollbar(frame, orient=tk.VERTICAL, command=canvas.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Create an inner frame in the canvas
+    inner_frame = tk.Frame(canvas)
+    canvas.create_window((0, 0), window=inner_frame, anchor="nw")
+
+    # Populate the inner frame with team names
+    for team_id, team_name in teams:
+        label = tk.Label(inner_frame, text=team_name, font=("Helvetica", 12))
+        label.pack(anchor="w", padx=5, pady=2)
+
+
+    def on_frame_configure(event):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    inner_frame.bind("<Configure>", on_frame_configure)
+
+    # Run the main loop
+    root.mainloop()
+
 
 def trends_window():
     messagebox.showinfo("Trends", "Trends feature is under development.")
@@ -637,7 +762,7 @@ def comparison_window():
 def open_main_menu():
     main_menu = tk.Tk()
     main_menu.title("Nutrition Tracker - Main Menu")
-    main_menu.geometry("500x600")
+    main_menu.geometry("800x600")
     main_menu.configure(bg="#eaf4fc")
 
     tk.Label(main_menu, text="Welcome to Nutrition Tracker!", font=("Helvetica", 18), bg="#eaf4fc").pack(pady=30)
@@ -652,6 +777,7 @@ def open_main_menu():
     ttk.Button(main_menu, text="View Statistics", command=statistics_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Track Trends", command=trends_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Team Comparison", command=comparison_window, width=25).pack(pady=10)
-
+    ttk.Button(main_menu, text="Join Team", command=join_team_window, width=25).pack(pady=10)
+    ttk.Button(main_menu, text="Show my teams", command=show_teams, width=25).pack(pady=10)
 
     main_menu.mainloop()

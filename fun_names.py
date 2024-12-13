@@ -3,11 +3,14 @@ from collections import defaultdict
 import re
 from tkinter import messagebox
 
+import shared
+
+
 def connect_to_db():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'Nn02'
+    password = 'Nn021099!'
     database = 'food_recommandation'
 
     try:
@@ -144,8 +147,67 @@ def create_new_team(team_name):
         # Close the cursor and connection
         cursor.close()
         connection.close()
+def get_all_teams():
+    # Show all teams
+    connection, cursor = connect_to_db()
+    select_query = "SELECT team_id, team_name FROM team"
+
+    try:
+        cursor.execute(select_query)
+        results = cursor.fetchall()
+        return results
+
+    except pymysql.MySQLError as e:
+        # Handle exceptions (log the error or re-raise as needed)
+        print(f"Error fetching teams: {e}")
+
+    finally:
+        cursor.close()
+        connection.close()
+
+def user_join_team(user_id, team_id):
+    connection, cursor = connect_to_db()
+    check_query = "SELECT * FROM belong_team WHERE team_id = %s AND user_id = %s"
+    insert_query = "INSERT INTO belong_team (team_id, user_id) VALUES (%s, %s)"
+    already_in_group = False
+
+    try:
+        # Check if the user is already in the team
+        cursor.execute(check_query, (team_id, user_id))
+        if cursor.fetchone():
+            already_in_group = True
+        else:
+            # Insert the user into the team
+            cursor.execute(insert_query, (team_id, user_id))
+            connection.commit()  # Commit after each insert
+    except pymysql.MySQLError as e:
+        # Handle exceptions
+        messagebox.showerror("Database Error", f"Error joining team: {e}")
+    finally:
+        # Close the cursor and connection
+        cursor.close()
+        connection.close()
+
+    return not already_in_group  # Return False if the user is already in the group
 
 
+def get_teams_for_user(user_id):
+    # Get all teams that the user is a part of
+    connection, cursor = connect_to_db()
+    select_query = "SELECT team_id, team_name FROM team WHERE team_id IN (SELECT team_id FROM belong_team WHERE user_id = %s)"
+
+    try:
+        cursor.execute(select_query, (user_id,))
+        results = cursor.fetchall()
+        return results
+
+    except pymysql.MySQLError as e:
+        # Handle exceptions (log the error or re-raise as needed)
+        print(f"Error fetching teams for user: {e}")
+
+    finally:
+        cursor.close()
+        connection.close()
 def join_team(groups):
     # Prepare the SQL query with placeholders
     insert_query = "INSERT INTO belong_team (team_id, user_id) VALUES (%s, %s)"
@@ -166,6 +228,7 @@ def join_team(groups):
         # Close the cursor and connection
         cursor.close()
         connection.close()
+
 
 
 def get_daily_gap(user_id, date):
@@ -298,6 +361,7 @@ ROUND(AVG(e.amount * f.Zinc_mg / 100), 2) AS Avg_Zinc_mg
     cursor.execute(query, (user_id, period))
     consumption = cursor.fetchone()
     return consumption
+
 
 
 def trends(user_id):
