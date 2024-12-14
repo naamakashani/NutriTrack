@@ -377,6 +377,40 @@ ROUND(AVG(e.amount * f.Zinc_mg / 100), 2) AS Avg_Zinc_mg
     return consumption
 
 
+def leave_team(user_id, team_id):
+    connection, cursor = connect_to_db()
+    flag = 1
+    try:
+        # Query to check if the user is part of the team
+        check_query = """
+            SELECT COUNT(*) 
+            FROM belong_team 
+            WHERE user_id = %s AND team_id = %s;
+        """
+        cursor.execute(check_query, (user_id, team_id))
+        result = cursor.fetchone()
+
+        if result[0] == 0:
+            print("User is not part of the team.")
+            flag = 0
+
+        # If the user is part of the team, proceed to remove them
+        delete_query = """
+            DELETE FROM belong_team
+            WHERE user_id = %s AND team_id = %s;
+        """
+        cursor.execute(delete_query, (user_id, team_id))
+        connection.commit()
+        print("User has successfully left the team.")
+
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        cursor.close()
+        connection.close()
+        return flag
+
+
 def trends(user_id):
     # return the trends of the user
     return 0;

@@ -748,8 +748,63 @@ def show_teams():
 
     # Run the main loop
     root.mainloop()
+def leave_team_window():
+    # Simulate a user ID (replace with actual user ID logic)
+    user_id = shared.user_id  # Assuming `shared.user_id` stores the current user ID
+    teams = get_teams_for_user(user_id)
 
+    if not teams:
+        messagebox.showinfo("Leave Team", "You are not part of any team.")
+        return
 
+    # Create the window
+    root = tk.Tk()
+    root.title("Leave Team")
+    root.geometry("400x400")
+
+    # Create a title label
+    title_label = tk.Label(root, text="Select a Team to Leave", font=("Helvetica", 16, "bold"))
+    title_label.pack(pady=10)
+
+    # Add a dropdown menu for team selection
+    team_dropdown = ttk.Combobox(root, state="readonly", width=30)
+    team_dropdown['values'] = [team_name for _, team_name in teams]  # Populate dropdown with team names
+    team_dropdown.pack(pady=10)
+
+    # Add a label to display the currently selected team (for debugging purposes)
+    selected_team_label = tk.Label(root, text="", font=("Helvetica", 12))
+    selected_team_label.pack(pady=5)
+
+    def on_team_selected(event):
+        # Display the currently selected team
+        selected_team_label.config(text=f"Selected Team: {team_dropdown.get()}")
+        print(f"Team selected: {team_dropdown.get()}")  # Debugging: Check selected value
+
+    team_dropdown.bind("<<ComboboxSelected>>", on_team_selected)
+
+    def submit_leave_team():
+        # Get the selected team name directly from the Combobox
+        team_name = team_dropdown.get()
+        if not team_name:
+            messagebox.showerror("Error", "Please select a team to leave.")
+            return
+
+        # Find the corresponding team ID
+        team_id = next((team[0] for team in teams if team[1] == team_name), None)
+
+        if team_id:
+            leave_team(user_id, team_id)  # Call the leave_team function
+            messagebox.showinfo("Success", f"You have successfully left the team '{team_name}'.")
+            root.destroy()
+        else:
+            messagebox.showerror("Error", "Unable to find the selected team.")
+
+    # Add a submit button
+    submit_button = ttk.Button(root, text="Leave Team", command=submit_leave_team)
+    submit_button.pack(pady=20)
+
+    # Run the main loop
+    root.mainloop()
 
 
 def create_team_window():
@@ -762,7 +817,7 @@ def create_team_window():
 
         result = create_new_team(team_name)
         if result == 0:
-            messagebox.showinfo("Info", f"The team '{team_name}' already exists.")
+            messagebox.showerror("Error", f"The team '{team_name}' already exists.")
         else:
             messagebox.showinfo("Success", f"Team '{team_name}' created successfully.")
             new_team_window.destroy()
@@ -813,6 +868,7 @@ def open_main_menu():
     ttk.Button(main_menu, text="Track Trends", command=trends_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Team Comparison", command=comparison_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Join Team", command=join_team_window, width=25).pack(pady=10)
+    ttk.Button(main_menu, text="Leave Team", command=leave_team_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Show My Teams", command=show_teams, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Create New Team", command=create_team_window, width=25).pack(pady=10)
 
