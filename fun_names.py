@@ -248,7 +248,6 @@ def join_team(groups):
 def get_daily_gap(user_id, date):
     """
     Calculate the daily gap of the user on the given date.
-    Returns a dictionary of nutrient deficiencies and excesses, along with caloric gap.
     """
 
     try:
@@ -409,11 +408,64 @@ def leave_team(user_id, team_id):
         cursor.close()
         connection.close()
         return flag
+def trends(user_id, start_date, end_date, nutrient):
 
+    # Construct the query safely
+    query = f"""
+    SELECT
+        ROUND(SUM(recom_user.{nutrient}) - daily.daily_nutrient, 2) AS nutrient_gap
+    FROM 
+        (
+            SELECT 
+                ls.{nutrient}
+            FROM 
+                life_stage_group_daily_recommand AS ls, user_profile
+            WHERE 
+                user_profile.user_id = %s 
+                AND ls.gender = user_profile.gender 
+                AND ls.subgroup = user_profile.subgroup 
+                AND ls.min_age = user_profile.min_age 
+                AND ls.max_age = user_profile.max_age
+        ) AS recom_user,
+        (
+            SELECT 
+                eat.user_id,
+                eat.date_of_eat,
+                SUM(eat.amount * food.{nutrient} / 100) AS daily_nutrient
+            FROM 
+                eat
+            INNER JOIN 
+                food 
+            ON 
+                eat.food_name = food.food_name
+            WHERE 
+                eat.user_id = %s
+                AND eat.date_of_eat BETWEEN %s AND %s
+            GROUP BY 
+                eat.user_id, eat.date_of_eat
+        ) AS daily
+    GROUP BY
+        WEEK(daily.date_of_eat)
+    ORDER BY
+        WEEK(daily.date_of_eat);
+    """
 
-def trends(user_id):
-    # return the trends of the user
-    return 0;
+    # Establish database connection
+    try:
+        connection, cursor = connect_to_db()
+        # Execute the query
+        cursor.execute(query, (user_id, user_id, start_date, end_date))
+        results = cursor.fetchall()
+        return results
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        raise
+    finally:
+        # Ensure resources are cleaned up
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
 
 
 def comparison_team(team_id):

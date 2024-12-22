@@ -8,6 +8,8 @@ from fun_names import *
 from tkinter import font
 from tkinter import ttk
 import tkinter as tk
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 def display_food_for_nutrient(nutrient_name):
@@ -106,13 +108,10 @@ def display_daily_gap(daily_gap):
 
         # Determine the color based on the gap value
         if gap > 0:
-            color = "green"  # Excess
+            color = "black"  # Excess
             value_text = f"+{gap}"  # Add "+" for excess values
-        elif gap < 0:
-            color = "red"  # Deficiency
-            value_text = str(gap)
         else:
-            color = "black"  # No gap
+            color = "red"  # Deficiency
             value_text = str(gap)
 
         # Create the label for this nutrient
@@ -420,7 +419,7 @@ def blood_test():
                 text=deficiency,  # Display the clean name
                 font=("Helvetica", 10),
                 command=lambda n=nutrient_field: display_food_for_nutrient(n),  # Pass the correct field name
-                bg="gray",  # Green for deficiency buttons
+                bg="gray",
                 fg="black",  # Black text
                 padx=10,
                 pady=5
@@ -683,7 +682,8 @@ def join_team_window():
     # Create checkboxes for each team
     for team_id, team_name in teams:
         var = tk.BooleanVar()
-        checkbox = tk.Checkbutton(inner_frame, text=team_name, variable=var, command=lambda t=team_name, i=team_id: toggle_team(t, i))
+        checkbox = tk.Checkbutton(inner_frame, text=team_name, variable=var,
+                                  command=lambda t=team_name, i=team_id: toggle_team(t, i))
         checkbox.pack(anchor="w", padx=5, pady=2)
 
     # Update the scroll region
@@ -693,12 +693,12 @@ def join_team_window():
     inner_frame.bind("<Configure>", on_frame_configure)
 
     # Submit button
-    submit_button = tk.Button(root, text="Submit", command=lambda: submit_selected_teams(selected_teams), bg="green", fg="white", font=("Helvetica", 12, "bold"))
+    submit_button = tk.Button(root, text="Submit", command=lambda: submit_selected_teams(selected_teams), bg="green",
+                              fg="white", font=("Helvetica", 12, "bold"))
     submit_button.pack(pady=10)
 
     # Run the main loop
     root.mainloop()
-
 
 
 def show_teams():
@@ -740,7 +740,6 @@ def show_teams():
         label = tk.Label(inner_frame, text=team_name, font=("Helvetica", 12))
         label.pack(anchor="w", padx=5, pady=2)
 
-
     def on_frame_configure(event):
         canvas.configure(scrollregion=canvas.bbox("all"))
 
@@ -748,6 +747,8 @@ def show_teams():
 
     # Run the main loop
     root.mainloop()
+
+
 def leave_team_window():
     # Simulate a user ID (replace with actual user ID logic)
     user_id = shared.user_id  # Assuming `shared.user_id` stores the current user ID
@@ -839,9 +840,135 @@ def create_team_window():
     create_button.pack(pady=20)
 
 
-
 def trends_window():
-    messagebox.showinfo("Trends", "Trends feature is under development.")
+    def plot_nutrient_trends_ui(results, nutrient, parent_window):
+        """
+        Displays the nutrient gap trends in a tabular format within the UI.
+        Parameters:
+            results (list of tuples): Each tuple contains the nutrient gap for a week.
+            nutrient (str): The name of the nutrient.
+            parent_window (tk.Toplevel): The parent window where the results will be displayed.
+        """
+        # Clear existing content in parent window
+        for widget in parent_window.winfo_children():
+            widget.destroy()
+
+        # Add a title
+        tk.Label(
+            parent_window,
+            text=f"Weekly Nutrient Gap Trends for {nutrient}",
+            font=("Helvetica", 16),
+            bg="#f7f9fc"
+        ).pack(pady=10)
+
+        # Create a Treeview widget to display the results
+        tree = ttk.Treeview(parent_window, columns=("Week", "Nutrient Gap"), show="headings", height=10)
+        tree.pack(pady=10, padx=20, fill=tk.BOTH, expand=True)
+
+        # Define the column headings
+        tree.heading("Week", text="Week")
+        tree.heading("Nutrient Gap", text="Nutrient Gap")
+
+        # Define column widths
+        tree.column("Week", anchor=tk.CENTER, width=100)
+        tree.column("Nutrient Gap", anchor=tk.CENTER, width=150)
+
+        # Insert data into the Treeview
+        for week, result in enumerate(results, start=1):
+            tree.insert("", "end", values=(week, result[0]))
+
+        # Add a "Close" button
+        ttk.Button(
+            parent_window,
+            text="Close",
+            command=parent_window.destroy
+        ).pack(pady=20)
+
+    # Function to handle "Show Trends" button click
+    def show_trends():
+        start = start_date.get()
+        end = end_date.get()
+        if not is_valid_date(start) or not is_valid_date(end):
+            messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.")
+            return
+
+        # Create a new window for nutrient buttons
+        nutrient_window = tk.Toplevel(trends_window)
+        nutrient_window.title("Nutrient Trends")
+        nutrient_window.geometry("400x600")
+        nutrient_window.configure(bg="#f7f9fc")
+
+        # Create a button for each nutrient
+        for nutrient in nutrient_names:
+            custom_font = font.Font(family="Helvetica", size=10)  # Button font
+            frame = tk.Frame(nutrient_window, bg="#f7f9fc")
+            frame.pack(fill=tk.X, pady=5)
+
+            # Label for the nutrient
+            tk.Label(
+                frame,
+                text=f"{nutrient}",
+                font=("Helvetica", 10),
+                bg="#f7f9fc",
+                fg="gray",
+                width=25,
+                anchor="w"
+            ).pack(side=tk.LEFT, padx=10)
+
+            # Button to show trends
+            button = tk.Button(
+                frame,
+                text="Show Trends",
+                font=custom_font,
+                command=lambda n=nutrient: open_trends_window(n, start, end)
+            )
+            button.pack(side=tk.RIGHT, padx=10)
+
+        # Close button
+        ttk.Button(
+            nutrient_window,
+            text="Close",
+            command=nutrient_window.destroy
+        ).pack(pady=20)
+
+    def open_trends_window(nutrient, start, end):
+        results = trends(shared.user_id, start, end, nutrient)
+        if not results:
+            messagebox.showinfo("Trends", f"No data available for {nutrient} in the selected date range.")
+        else:
+            trends_window = tk.Toplevel()
+            trends_window.title(f"Trends for {nutrient}")
+            trends_window.geometry("400x400")
+            trends_window.configure(bg="#f7f9fc")
+            plot_nutrient_trends_ui(results, nutrient, trends_window)
+
+    # Nutrient names
+    nutrient_names = [
+        "Vitamin_A_mg", "Vitamin_C_mg", "Vitamin_D_mg", "Vitamin_E_mg",
+        "Vitamin_K_mg", "Thiamin_mg", "Riboflavin_mg", "Niacin_mg",
+        "Vitamin_B6_mg", "Vitamin_B12_mg", "Pantothenic_acid_mg"
+    ]
+
+    # Main window setup
+    trends_window = tk.Tk()
+    trends_window.title("Trends")
+    trends_window.geometry("500x400")
+    trends_window.configure(bg="#f7f9fc")
+
+    tk.Label(trends_window, text="Insert Start Date (YYYY-MM-DD)", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    ttk.Label(trends_window, text="Start Date:").pack(pady=5)
+    start_date = ttk.Entry(trends_window, width=30)
+    start_date.pack(pady=5)
+
+    tk.Label(trends_window, text="Insert End Date (YYYY-MM-DD)", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    ttk.Label(trends_window, text="End Date:").pack(pady=5)
+    end_date = ttk.Entry(trends_window, width=30)
+    end_date.pack(pady=5)
+
+    submit_button = ttk.Button(trends_window, text="Show Trends", command=show_trends)
+    submit_button.pack(pady=20)
+
+    trends_window.mainloop()
 
 
 def comparison_window():
