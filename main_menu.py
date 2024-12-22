@@ -1,16 +1,10 @@
-import tkinter as tk
 from datetime import datetime
-from tkinter import ttk
-from tkinter import messagebox
-from PIL import Image, ImageTk  # For handling the logo image
-import shared
 from fun_names import *
 from tkinter import font
-from tkinter import ttk
 import tkinter as tk
-import matplotlib.pyplot as plt
+from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
+import matplotlib.pyplot as plt
 
 def display_food_for_nutrient(nutrient_name):
     # Create a new window
@@ -843,7 +837,8 @@ def create_team_window():
 def trends_window():
     def plot_nutrient_trends_ui(results, nutrient, parent_window):
         """
-        Displays the nutrient gap trends in a tabular format within the UI.
+        Displays the nutrient gap trends in a histogram format within the UI.
+
         Parameters:
             results (list of tuples): Each tuple contains the nutrient gap for a week.
             nutrient (str): The name of the nutrient.
@@ -853,29 +848,35 @@ def trends_window():
         for widget in parent_window.winfo_children():
             widget.destroy()
 
+        # Set larger window size
+        parent_window.geometry("800x600")
+
         # Add a title
         tk.Label(
             parent_window,
             text=f"Weekly Nutrient Gap Trends for {nutrient}",
-            font=("Helvetica", 16),
+            font=("Helvetica", 10),
             bg="#f7f9fc"
         ).pack(pady=10)
 
-        # Create a Treeview widget to display the results
-        tree = ttk.Treeview(parent_window, columns=("Week", "Nutrient Gap"), show="headings", height=10)
-        tree.pack(pady=10, padx=20, fill=tk.BOTH, expand=True)
+        # Prepare the data for plotting
+        weeks = list(range(1, len(results) + 1))
+        gaps = [result[0] for result in results]
 
-        # Define the column headings
-        tree.heading("Week", text="Week")
-        tree.heading("Nutrient Gap", text="Nutrient Gap")
+        # Create a matplotlib figure
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.bar(weeks, gaps, color="skyblue", edgecolor="black")
+        ax.set_title(f"Nutrient Gap Trends for {nutrient}", fontsize=10)
+        ax.set_xlabel("Week", fontsize=10)
+        ax.set_ylabel("Nutrient Gap", fontsize=10)
+        ax.set_xticks(weeks)
+        ax.grid(axis="y", linestyle="--", alpha=0.7)
 
-        # Define column widths
-        tree.column("Week", anchor=tk.CENTER, width=100)
-        tree.column("Nutrient Gap", anchor=tk.CENTER, width=150)
-
-        # Insert data into the Treeview
-        for week, result in enumerate(results, start=1):
-            tree.insert("", "end", values=(week, result[0]))
+        # Embed the matplotlib figure into the Tkinter UI
+        canvas = FigureCanvasTkAgg(fig, master=parent_window)
+        canvas_widget = canvas.get_tk_widget()
+        canvas_widget.pack(pady=10, padx=20, fill=tk.BOTH, expand=True)
+        canvas.draw()
 
         # Add a "Close" button
         ttk.Button(
@@ -883,8 +884,6 @@ def trends_window():
             text="Close",
             command=parent_window.destroy
         ).pack(pady=20)
-
-    # Function to handle "Show Trends" button click
     def show_trends():
         start = start_date.get()
         end = end_date.get()
