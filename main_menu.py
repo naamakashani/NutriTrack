@@ -560,7 +560,7 @@ def statistics_window():
 
         tk.Button(
             button_frame,
-            text="Weekly Averages",
+            text="Last Week Average",
             command=lambda: show_avg(7),
             font=("Helvetica", 10),
             bg="#4caf50",
@@ -571,7 +571,7 @@ def statistics_window():
 
         tk.Button(
             button_frame,
-            text="Monthly Averages",
+            text="Last Month Average",
             command=lambda: show_avg(30),
             font=("Helvetica", 10),
             bg="#4caf50",

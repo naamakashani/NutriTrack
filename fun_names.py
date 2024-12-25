@@ -293,8 +293,6 @@ def get_daily_gap(user_id, date):
         """, (user_id, user_id, date))
         daily_gap = cursor.fetchone()
 
-        # todo : check that it work gor negative gap
-        # todo : check that this is good
 
     except Exception as e:
         print(f"Error: {e}")
