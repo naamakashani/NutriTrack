@@ -1,10 +1,8 @@
 import pymysql
 from collections import defaultdict
 import re
-from tkinter import messagebox
-
 import shared
-
+from tkinter import messagebox
 
 def connect_to_db():
     # Database connection details
