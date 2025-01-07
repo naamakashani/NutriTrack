@@ -165,7 +165,7 @@ def create_users(connection, cursor):
 def insert_belong_teams(connection, cursor):
     groups = [
         (1, 100000001), (1, 100000002), (1, 100000003), (2, 100000004), (2, 100000006),
-        (3, 100000007)
+        (3, 100000007), (7,200000001), (7,200000002), (7,200000003)
     ]
     # Prepare the SQL query with placeholders
     insert_query = "INSERT INTO belong_team (team_id, user_id) VALUES (%s, %s)"

@@ -900,6 +900,7 @@ def trends_window():
         ax.bar(weeks, gaps, color="skyblue", edgecolor="black")
         ax.set_title(f"Nutrient Gap Trends for {nutrient}", fontsize=10)
         ax.set_ylabel("Nutrient Gap (%)", fontsize=10)  # Keep the y-axis label
+        ax.set_xlabel("Week", fontsize=10)  # X-axis label
         ax.grid(axis="y", linestyle="--", alpha=0.7)
 
         plt.tight_layout()  # Adjust layout to ensure everything fits
