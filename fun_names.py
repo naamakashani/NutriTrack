@@ -251,18 +251,18 @@ def get_daily_gap(user_id, date):
     try:
         connection, cursor = connect_to_db()
         cursor.execute(""" SELECT
-         ROUND(daily.daily_Vitamin_A_mg - recom_user.Vitamin_A_mg, 2),
-            ROUND(daily.daily_Vitamin_C_mg - recom_user.Vitamin_C_mg, 2),
-            ROUND(daily.daily_Vitamin_D_mg - recom_user.Vitamin_D_mg, 2),
-            ROUND(daily.daily_Vitamin_E_mg - recom_user.Vitamin_E_mg, 2),
-            ROUND(daily.daily_Vitamin_K_mg - recom_user.Vitamin_K_mg, 2),
-            ROUND(daily.daily_Thiamin_mg - recom_user.Thiamin_mg, 2),
-            ROUND(daily.daily_Riboflavin_mg - recom_user.Riboflavin_mg, 2),
-            ROUND(daily.daily_Niacin_mg - recom_user.Niacin_mg, 2),
-            ROUND(daily.daily_Vitamin_B6_mg - recom_user.Vitamin_B6_mg, 2),
-            ROUND(daily.daily_Vitamin_B12_mg - recom_user.Vitamin_B12_mg, 2),
-            ROUND(daily.daily_Pantothenic_acid_mg - recom_user.Pantothenic_acid_mg, 2),
-            ROUND(daily.daily_Caloric_Value_kcal - recom_user.desired_calories, 2)
+    (daily.daily_Vitamin_A_mg - recom_user.Vitamin_A_mg) / NULLIF(recom_user.Vitamin_A_mg, 0) * 100 AS Vitamin_A_gap,
+    (daily.daily_Vitamin_C_mg - recom_user.Vitamin_C_mg) / NULLIF(recom_user.Vitamin_C_mg, 0) * 100 AS Vitamin_C_gap,
+    (daily.daily_Vitamin_D_mg - recom_user.Vitamin_D_mg) / NULLIF(recom_user.Vitamin_D_mg, 0) * 100 AS Vitamin_D_gap,
+    (daily.daily_Vitamin_E_mg - recom_user.Vitamin_E_mg) / NULLIF(recom_user.Vitamin_E_mg, 0) * 100 AS Vitamin_E_gap,
+    (daily.daily_Vitamin_K_mg - recom_user.Vitamin_K_mg) / NULLIF(recom_user.Vitamin_K_mg, 0) * 100 AS Vitamin_K_gap,
+    (daily.daily_Thiamin_mg - recom_user.Thiamin_mg) / NULLIF(recom_user.Thiamin_mg, 0) * 100 AS Thiamin_gap,
+    (daily.daily_Riboflavin_mg - recom_user.Riboflavin_mg) / NULLIF(recom_user.Riboflavin_mg, 0) * 100 AS Riboflavin_gap,
+    (daily.daily_Niacin_mg - recom_user.Niacin_mg) / NULLIF(recom_user.Niacin_mg, 0) * 100 AS Niacin_gap,
+    (daily.daily_Vitamin_B6_mg - recom_user.Vitamin_B6_mg) / NULLIF(recom_user.Vitamin_B6_mg, 0) * 100 AS Vitamin_B6_gap,
+    (daily.daily_Vitamin_B12_mg - recom_user.Vitamin_B12_mg) / NULLIF(recom_user.Vitamin_B12_mg, 0) * 100 AS Vitamin_B12_gap,
+    (daily.daily_Pantothenic_acid_mg - recom_user.Pantothenic_acid_mg) / NULLIF(recom_user.Pantothenic_acid_mg, 0) * 100 AS Pantothenic_acid_gap,
+    (daily.daily_Caloric_Value_kcal - recom_user.desired_calories) / NULLIF(recom_user.desired_calories, 0) * 100 AS Caloric_gap
         FROM (
             SELECT Vitamin_A_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg,
                    Thiamin_mg, Riboflavin_mg, Niacin_mg, Vitamin_B6_mg, Vitamin_B12_mg,
@@ -440,7 +440,7 @@ def trends(user_id, start_date, end_date, nutrient):
     # Construct the query safely
     query = f"""
     SELECT
-        ROUND(SUM(recom_user.{nutrient}) - daily.daily_nutrient, 2) AS nutrient_gap
+        AVG((recom_user.{nutrient}) - daily.daily_nutrient) / recom_user.{nutrient} *100) AS nutrient_gap
     FROM 
         (
             SELECT 
@@ -469,7 +469,7 @@ def trends(user_id, start_date, end_date, nutrient):
                 eat.user_id = %s
                 AND eat.date_of_eat BETWEEN %s AND %s
             GROUP BY 
-                eat.user_id, eat.date_of_eat
+                eat.date_of_eat
         ) AS daily
     GROUP BY
         WEEK(daily.date_of_eat)

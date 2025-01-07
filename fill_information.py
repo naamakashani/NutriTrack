@@ -10,6 +10,7 @@ def connect_to_db():
     # Connect to the database
     try:
         connection = pymysql.connect(host=host, user=user, password=password, database=database)
+        connection.autocommit = False
         cursor = connection.cursor()
         print("Connected to the database")
         return connection, cursor
@@ -69,6 +70,7 @@ def insert_teams(connection, cursor):
 
 
 def create_users(connection, cursor):
+
     data = [
         [100000001, 'Male', 0.8, 'Infants', 'Alice_M', 7.2, 68, 'Sedentary'],
         [100000002, 'Female', 4, 'Children', 'Sophia_F', 18, 105, 'Lightly active'],
@@ -316,6 +318,7 @@ def load_food_data_small(connection, cursor):
 
 def fill_information():
     connection, cursor = connect_to_db()
+
     life_stage_group_load(connection, cursor)
     create_users(connection, cursor)
     insert_teams(connection, cursor)

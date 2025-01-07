@@ -6,6 +6,7 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 
+
 def display_food_for_nutrient(nutrient_name):
     # Create a new window
     new_window = tk.Toplevel()
@@ -53,10 +54,11 @@ def display_daily_gap(daily_gap):
     Displays the daily nutritional gaps in a new Tkinter window with color-coded values.
 
     Arguments:
-    daily_gap -- a list of gap values corresponding to predefined nutrient names.
+    daily_gap -- a list of gap percentages corresponding to predefined nutrient names.
+                 Positive values indicate no gap (excess), and negative values indicate the percentage of the gap.
     """
-    # Predefined list of nutrient names corresponding to the values in daily_gap
-    nutrient_names = [
+
+    names = [
         "Vitamin_A_mg",
         "Vitamin_C_mg",
         "Vitamin_D_mg",
@@ -71,10 +73,25 @@ def display_daily_gap(daily_gap):
         "Caloric_Value_kcal"
     ]
 
+    nutrient_names = {
+        "Vitamin A Gap": names[0],
+        "Vitamin C Gap": names[1],
+        "Vitamin D Gap": names[2],
+        "Vitamin E Gap": names[3],
+        "Vitamin K Gap": names[4],
+        "Thiamin Gap": names[5],
+        "Riboflavin Gap": names[6],
+        "Niacin Gap": names[7],
+        "Vitamin B6 Gap": names[8],
+        "Vitamin B12 Gap": names[9],
+        "Pantothenic Acid Gap": names[10],
+        "Calories Gap": names[11]
+    }
+
     # Create a new window
     gap_display_window = tk.Toplevel()
-    gap_display_window.title("Daily Gap")
-    gap_display_window.geometry("400x600")
+    gap_display_window.title("Daily Nutritional Gap")
+    gap_display_window.geometry("600x600")
     gap_display_window.configure(bg="#f7f9fc")
 
     # Title label
@@ -88,7 +105,7 @@ def display_daily_gap(daily_gap):
     # Instructions label
     tk.Label(
         gap_display_window,
-        text="Excess values are in black, deficiencies are in red.",
+        text="Positive values indicate excess and negative values indicate deficiency.",
         font=("Helvetica", 10),
         bg="#f7f9fc",
         fg="gray"
@@ -102,11 +119,14 @@ def display_daily_gap(daily_gap):
 
         # Determine the color based on the gap value
         if gap > 0:
-            color = "black"  # Excess
-            value_text = f"+{gap}"  # Add "+" for excess values
+            color = "green"  # No gap (excess)
+            value_text = f"{gap:.2f}%"  # Format percentage
+        elif gap == 0:
+            color = "black"
+            value_text = "0%"  # No gap
         else:
-            color = "red"  # Deficiency
-            value_text = str(gap)
+            color = "red"  # Gap (deficiency)
+            value_text = f"{gap:.2f}%"  # Format percentage
 
         # Create the label for this nutrient
         tk.Label(
@@ -120,14 +140,14 @@ def display_daily_gap(daily_gap):
         ).pack(side=tk.LEFT, padx=10)
 
         custom_font = font.Font(family="Helvetica", size=8)  # Smaller size
-        if nutrient != "Caloric_Value_kcal" and gap < 0:
+        if nutrient != "Calories Gap" and gap < 0:
             # Button to show recommendation
             button = tk.Button(
                 frame,
                 text="Food Recommendation",
                 font=custom_font,  # Apply the custom font
                 width=20,  # Adjust width to make the button smaller
-                command=lambda n=nutrient: display_food_for_nutrient(n)
+                command=lambda n=nutrient_names[nutrient]: display_food_for_nutrient(n)
             )
             button.pack(side=tk.RIGHT, padx=10)
 
@@ -884,6 +904,7 @@ def trends_window():
             text="Close",
             command=parent_window.destroy
         ).pack(pady=20)
+
     def show_trends():
         start = start_date.get()
         end = end_date.get()
@@ -989,7 +1010,6 @@ def open_main_menu():
     ttk.Button(main_menu, text="View Daily Gap", command=daily_gap_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Deficiencies From Blood Test", command=blood_test, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Insert Eaten Food", command=insert_eaten_window, width=25).pack(pady=10)
-    ttk.Button(main_menu, text="View Recommendations", command=recommendations_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="View Statistics", command=statistics_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Track Trends", command=trends_window, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Team Comparison", command=comparison_window, width=25).pack(pady=10)
