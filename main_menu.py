@@ -34,7 +34,7 @@ def display_food_for_nutrient(nutrient_name):
             food_label = tk.Label(
                 new_window,
                 text=f"- {clean_food.capitalize()}",  # Capitalize for better readability
-                font=("Helvetica", 8),
+                font=("Helvetica", 10),
                 bg="#f7f9fc"
             )
             food_label.pack(anchor="w", padx=20, pady=2)  # Add padding for cleaner look

@@ -313,7 +313,7 @@ def recommand_food_for_nutrient(nutrient):
                     SELECT food_name
                     FROM food
                     ORDER BY {nutrient} DESC
-                    LIMIT 5;
+                    LIMIT 7;
                 """
         cursor.execute(query)
         results = cursor.fetchall()
@@ -330,33 +330,34 @@ def avg_consumption(user_id, period):
     connection, cursor = connect_to_db()
     query = """
     SELECT 
-        ROUND(AVG(daily_calories), 2) AS Avg_Calories,
-        ROUND(AVG(daily_protein), 2) AS Avg_Protein_g,
-        ROUND(AVG(daily_fiber), 2) AS Avg_Fiber_g,
-        ROUND(AVG(daily_cholesterol), 2) AS Avg_Cholesterol_mg,
-        ROUND(AVG(daily_sodium), 2) AS Avg_Sodium_g,
-        ROUND(AVG(daily_water), 2) AS Avg_Water_g,
-        ROUND(AVG(daily_vitamin_a), 2) AS Avg_Vitamin_A_mg,
-        ROUND(AVG(daily_thiamin), 2) AS Avg_Thiamin_mg,
-        ROUND(AVG(daily_folic_acid), 2) AS Avg_Folic_Acid_mg,
-        ROUND(AVG(daily_vitamin_b12), 2) AS Avg_Vitamin_B12_mg,
-        ROUND(AVG(daily_riboflavin), 2) AS Avg_Riboflavin_mg,
-        ROUND(AVG(daily_niacin), 2) AS Avg_Niacin_mg,
-        ROUND(AVG(daily_pantothenic_acid), 2) AS Avg_Pantothenic_Acid_mg,
-        ROUND(AVG(daily_vitamin_b6), 2) AS Avg_Vitamin_B6_mg,
-        ROUND(AVG(daily_vitamin_c), 2) AS Avg_Vitamin_C_mg,
-        ROUND(AVG(daily_vitamin_d), 2) AS Avg_Vitamin_D_mg,
-        ROUND(AVG(daily_vitamin_e), 2) AS Avg_Vitamin_E_mg,
-        ROUND(AVG(daily_vitamin_k), 2) AS Avg_Vitamin_K_mg,
-        ROUND(AVG(daily_calcium), 2) AS Avg_Calcium_mg,
-        ROUND(AVG(daily_copper), 2) AS Avg_Copper_mg,
-        ROUND(AVG(daily_iron), 2) AS Avg_Iron_mg,
-        ROUND(AVG(daily_magnesium), 2) AS Avg_Magnesium_mg,
-        ROUND(AVG(daily_manganese), 2) AS Avg_Manganese_mg,
-        ROUND(AVG(daily_phosphorus), 2) AS Avg_Phosphorus_mg,
-        ROUND(AVG(daily_potassium), 2) AS Avg_Potassium_mg,
-        ROUND(AVG(daily_selenium), 2) AS Avg_Selenium_mg,
-        ROUND(AVG(daily_zinc), 2) AS Avg_Zinc_mg
+        ROUND(AVG(daily_calories), 5) AS Avg_Calories,
+        ROUND(AVG(daily_protein), 5) AS Avg_Protein_g,
+        ROUND(AVG(daily_fiber), 5) AS Avg_Fiber_g,
+        ROUND(AVG(daily_cholesterol), 5) AS Avg_Cholesterol_mg,
+        ROUND(AVG(daily_sodium), 5) AS Avg_Sodium_g,
+        ROUND(AVG(daily_water), 5) AS Avg_Water_g,
+        ROUND(AVG(daily_vitamin_a), 5) AS Avg_Vitamin_A_mg,
+        ROUND(AVG(daily_thiamin), 5) AS Avg_Thiamin_mg,
+        ROUND(AVG(daily_folic_acid), 5) AS Avg_Folic_Acid_mg,
+        ROUND(AVG(daily_vitamin_b12), 5) AS Avg_Vitamin_B12_mg,
+        ROUND(AVG(daily_riboflavin), 5) AS Avg_Riboflavin_mg,
+        ROUND(AVG(daily_niacin), 5) AS Avg_Niacin_mg,
+        ROUND(AVG(daily_pantothenic_acid), 5) AS Avg_Pantothenic_Acid_mg,
+        ROUND(AVG(daily_vitamin_b6), 5) AS Avg_Vitamin_B6_mg,
+        ROUND(AVG(daily_vitamin_c), 5) AS Avg_Vitamin_C_mg,
+        ROUND(AVG(daily_vitamin_d), 5) AS Avg_Vitamin_D_mg,
+        ROUND(AVG(daily_vitamin_e), 5) AS Avg_Vitamin_E_mg,
+        ROUND(AVG(daily_vitamin_k), 5) AS Avg_Vitamin_K_mg,
+        ROUND(AVG(daily_calcium), 5) AS Avg_Calcium_mg,
+        ROUND(AVG(daily_copper), 5) AS Avg_Copper_mg,
+        ROUND(AVG(daily_iron), 5) AS Avg_Iron_mg,
+        ROUND(AVG(daily_magnesium), 5) AS Avg_Magnesium_mg,
+        ROUND(AVG(daily_manganese), 5) AS Avg_Manganese_mg,
+        ROUND(AVG(daily_phosphorus), 5) AS Avg_Phosphorus_mg,
+        ROUND(AVG(daily_potassium), 5) AS Avg_Potassium_mg,
+        ROUND(AVG(daily_selenium), 5) AS Avg_Selenium_mg,
+        ROUND(AVG(daily_zinc), 5) AS Avg_Zinc_mg
+
     FROM (
         SELECT 
             SUM(e.amount * f.Caloric_Value_kcal / 100) AS daily_calories,
