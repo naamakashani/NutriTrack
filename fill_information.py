@@ -357,19 +357,29 @@ def insert_eaten(food, amount, user_id, date_of_eat, connection, cursor):
 def create_food_items(connection, cursor):
     # Define the date range for the last month
     end_date = datetime.now()
-    start_date = end_date - timedelta(days=30)
+    start_date = end_date - timedelta(days=60)
 
     date_range = pd.date_range(start=start_date, end=end_date)
 
     # Generate data for the last month
     data = {
         "food": random.choices(
-            ["apple", "banana", "chicken", "salad", "pasta", "rice", "fish", "soup", "steak", "yogurt", "bread", "egg"],
-            k=len(date_range) * 10
+            [
+                "apple", "banana", "chicken", "salad", "pasta", "rice", "fish",
+                "soup", "steak", "yogurt", "bread", "egg", "wine", "orange",
+                "grapes", "mango", "cheese", "turkey", "pizza", "burger", "fries",
+                "sushi", "tofu", "beans", "lentils", "shrimp", "lobster", "ice cream",
+                "chocolate", "honey", "tea", "coffee", "milk", "oatmeal", "nuts",
+                "spinach", "broccoli", "potato", "carrot", "mushroom", "pancakes",
+                "waffles", "bacon", "sausage", "pear", "watermelon", "pineapple",
+                "avocado", "pepper", "onion"
+            ]
+            ,
+            k=len(date_range) * 20
         ),
-        "amount": [random.randint(100, 400) for _ in range(len(date_range) * 10)],
-        "user_id": random.choices([200000001, 200000002, 200000003], k=len(date_range) * 10),
-        "date_of_eat": [date.date() for date in date_range for _ in range(10)]
+        "amount": [random.randint(100, 400) for _ in range(len(date_range) * 20)],
+        "user_id": random.choices([200000001, 200000002, 200000003], k=len(date_range) * 20),
+        "date_of_eat": [date.date() for date in date_range for _ in range(20)]
     }
 
     # Create a DataFrame
