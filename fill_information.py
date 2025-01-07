@@ -1,6 +1,9 @@
 import pymysql
 import pandas as pd
 import os
+import re
+from datetime import datetime
+
 def connect_to_db():
     # Database connection details
     host = 'localhost'
@@ -56,6 +59,7 @@ def life_stage_group_load(connection, cursor):
         print("An error occurred while inserting life_stage_group_load")
         connection.rollback()  # Rollback in case of error
 
+
 def insert_teams(connection, cursor):
     groups = ['Microsoft', 'Google', 'Amazon', 'Facebook', 'Apple', 'AngelmanFamily', 'BacharFamily', 'CohenFamily']
     # Prepare the SQL query with placeholders
@@ -70,7 +74,6 @@ def insert_teams(connection, cursor):
 
 
 def create_users(connection, cursor):
-
     data = [
         [100000001, 'Male', 0.8, 'Infants', 'Alice_M', 7.2, 68, 'Sedentary'],
         [100000002, 'Female', 4, 'Children', 'Sophia_F', 18, 105, 'Lightly active'],
@@ -114,7 +117,10 @@ def create_users(connection, cursor):
         [100000042, 'Female', 37, 'Adult', 'Scarlett_F', 71, 162, 'Very active'],
         [100000043, 'Male', 30, 'Adult', 'Isaac_M', 70, 172, 'Moderately active'],
         [100000044, 'Female', 23, 'Adult', 'Evelyn_F', 64, 160, 'Sedentary'],
-        [100000045, 'Male', 47, 'Adult', 'Henry_M', 85, 185, 'Lightly active']
+        [100000045, 'Male', 47, 'Adult', 'Henry_M', 85, 185, 'Lightly active'],
+        [200000001, 'Male', 30, 'Adult', 'Yoav', 90, 175, 'Moderately active'],
+        [200000002, 'Female', 27, 'Adult', 'Shira', 50, 165, 'Moderately active'],
+        [200000003, 'Male', 35, 'Adult', 'Liam', 84, 180, 'Moderately active']
     ]
     # Creating a DataFrame
     df = pd.DataFrame(data, columns=['user_id', 'gender', 'age', 'subgroup', 'username', 'weight', 'height',
@@ -142,8 +148,9 @@ def create_users(connection, cursor):
     try:
         for index, row in df.iterrows():
             cursor.execute(insert_query, (
-            row['user_id'], row['gender'], row['age'], row['subgroup'], row['username'], row['weight'], row['height'],
-            row['activity_level'], row['subgroup'], row['gender'], row['age']))
+                row['user_id'], row['gender'], row['age'], row['subgroup'], row['username'], row['weight'],
+                row['height'],
+                row['activity_level'], row['subgroup'], row['gender'], row['age']))
 
         connection.commit()
         print("Users created successfully")
@@ -151,8 +158,6 @@ def create_users(connection, cursor):
     except Exception as e:
         print("An error occurred when inserting users")
         connection.rollback()
-
-
 
 
 def insert_belong_teams(connection, cursor):
@@ -185,16 +190,20 @@ def load_food_data_big(connection, cursor):
 
         # Step 3: Insert data row by row
         insert_query = "INSERT IGNORE INTO food (food_name, Caloric_Value_kcal, Protein_g, Dietary_Fiber_g, Cholesterol_mg, Sodium_g" \
-                    ", Water_g, Vitamin_A_mg, Thiamin_mg, Folic_acid_mg, Vitamin_B12_mg, Riboflavin_mg, Niacin_mg, Pantothenic_acid_mg" \
-                    ", Vitamin_B6_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, Calcium_mg, Copper_mg, Iron_mg" \
-                    ", Magnesium_mg, Manganese_mg, Phosphorus_mg, Potassium_mg, Selenium_mg, Zinc_mg) VALUES (%s, %s," \
-                    " %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                       ", Water_g, Vitamin_A_mg, Thiamin_mg, Folic_acid_mg, Vitamin_B12_mg, Riboflavin_mg, Niacin_mg, Pantothenic_acid_mg" \
+                       ", Vitamin_B6_mg, Vitamin_C_mg, Vitamin_D_mg, Vitamin_E_mg, Vitamin_K_mg, Calcium_mg, Copper_mg, Iron_mg" \
+                       ", Magnesium_mg, Manganese_mg, Phosphorus_mg, Potassium_mg, Selenium_mg, Zinc_mg) VALUES (%s, %s," \
+                       " %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         for index, row in df_big.iterrows():
             cursor.execute(insert_query, (
-                row['name'], row['Energy'], row['Protein'], row['Fiber, total dietary'], row['Cholesterol'], row['Sodium, Na'], row['Water'],
-                row['Vitamin A, RAE'], row['Thiamin'], row['Folic acid'], row['Vitamin B-12'], row['Riboflavin'], row['Niacin'],
-                row['Pantothenic acid'], row['Vitamin B-12'], row['Vitamin C, total ascorbic acid'], row['Vitamin D (D2 + D3)'], row['Vitamin E'],
-                row['Vitamin K (phylloquinone)'], row['Calcium, Ca'], row['Copper, Cu'], row['Iron, Fe'], row['Magnesium, Mg'], row['Manganese, Mn'],
+                row['name'], row['Energy'], row['Protein'], row['Fiber, total dietary'], row['Cholesterol'],
+                row['Sodium, Na'], row['Water'],
+                row['Vitamin A, RAE'], row['Thiamin'], row['Folic acid'], row['Vitamin B-12'], row['Riboflavin'],
+                row['Niacin'],
+                row['Pantothenic acid'], row['Vitamin B-12'], row['Vitamin C, total ascorbic acid'],
+                row['Vitamin D (D2 + D3)'], row['Vitamin E'],
+                row['Vitamin K (phylloquinone)'], row['Calcium, Ca'], row['Copper, Cu'], row['Iron, Fe'],
+                row['Magnesium, Mg'], row['Manganese, Mn'],
                 row['Phosphorus, P'], row['Potassium, K'], row['Selenium, Se'], row['Zinc, Zn']
             ))
 
@@ -211,36 +220,34 @@ def load_food_data_big(connection, cursor):
         connection.rollback()  # Rollback in case of error
 
 
-
-
 def convert_scale(connection, cursor):
     # convert the scale of the food data from g to the appropriate measure according to the column name in the table
     # Database connection details
     # Define a dictionary for the conversion scale based on column names
     conversion_factors = {
-        'Caloric_Value_kcal' : 0.239006, # KJ to kcal
+        'Caloric_Value_kcal': 0.239006,  # KJ to kcal
         'Cholesterol_mg': 1000,  # g to mg
-        'Calcium_mg': 1000,       # g to mg
-        'Magnesium_mg': 1000,     # g to mg
-        'Potassium_mg': 1000,     # g to mg
-        'Vitamin_A_mg': 1000,     # µg to mg
-        'Thiamin_mg': 1000,       # µg to mg
-        'Folic_acid_mg': 1000,    # µg to mg
-        'Vitamin_B12_mg': 1000,   # µg to mg
-        'Riboflavin_mg': 1000,    # µg to mg
-        'Niacin_mg': 1000,        # µg to mg
+        'Calcium_mg': 1000,  # g to mg
+        'Magnesium_mg': 1000,  # g to mg
+        'Potassium_mg': 1000,  # g to mg
+        'Vitamin_A_mg': 1000,  # µg to mg
+        'Thiamin_mg': 1000,  # µg to mg
+        'Folic_acid_mg': 1000,  # µg to mg
+        'Vitamin_B12_mg': 1000,  # µg to mg
+        'Riboflavin_mg': 1000,  # µg to mg
+        'Niacin_mg': 1000,  # µg to mg
         'Pantothenic_acid_mg': 1000,  # µg to mg
-        'Vitamin_B6_mg': 1000,    # µg to mg
-        'Vitamin_C_mg': 1000,     # µg to mg
-        'Vitamin_D_mg': 1000,     # µg to mg
-        'Vitamin_E_mg': 1000,     # µg to mg
-        'Vitamin_K_mg': 1000,     # µg to mg
-        'Copper_mg': 1000,        # µg to mg
-        'Iron_mg': 1000,          # µg to mg
-        'Manganese_mg': 1000,     # µg to mg
-        'Phosphorus_mg': 1000,    # µg to mg
-        'Selenium_mg': 1000,      # µg to mg
-        'Zinc_mg': 1000           # µg to mg
+        'Vitamin_B6_mg': 1000,  # µg to mg
+        'Vitamin_C_mg': 1000,  # µg to mg
+        'Vitamin_D_mg': 1000,  # µg to mg
+        'Vitamin_E_mg': 1000,  # µg to mg
+        'Vitamin_K_mg': 1000,  # µg to mg
+        'Copper_mg': 1000,  # µg to mg
+        'Iron_mg': 1000,  # µg to mg
+        'Manganese_mg': 1000,  # µg to mg
+        'Phosphorus_mg': 1000,  # µg to mg
+        'Selenium_mg': 1000,  # µg to mg
+        'Zinc_mg': 1000  # µg to mg
     }
     try:
         # Loop over the columns and apply the conversion factor where applicable
@@ -260,6 +267,7 @@ def convert_scale(connection, cursor):
         print("An error occurred: when converting the scale")
         connection.rollback()
 
+
 def load_food_data_small(connection, cursor):
     food_data_small_csv = 'FoodDataSmall.csv'
     try:
@@ -278,7 +286,7 @@ def load_food_data_small(connection, cursor):
         # df_small[numeric_columns] = df_small[numeric_columns].apply(pd.to_numeric, errors='coerce')
 
         # Round all float values to 6 decimal places to avoid scientific notation
-        #df_small[numeric_columns] = df_small[numeric_columns].round(6)
+        # df_small[numeric_columns] = df_small[numeric_columns].round(6)
 
         # # Step 3: Handle missing values - Replace 'NaN' with None
         # df_big.loc[df_big['name'].isna(), 'name'] = None
@@ -316,22 +324,56 @@ def load_food_data_small(connection, cursor):
         print("An error occurred: when inserting the small data")
         connection.rollback()  # Rollback in case of error
 
+
+def insert_eaten(food, amount, user_id, date_of_eat, connection, cursor):
+    try:
+        # Normalize the input food string: trim spaces, convert to lowercase
+        food = re.sub(r'\s+', ' ', food.strip().lower())
+
+        # Find the exact food name in the food table (case-insensitive exact match)
+        select_query = "SELECT food_name FROM food WHERE LOWER(food_name) = %s"
+        cursor.execute(select_query, (food,))  # No need for '%' wildcards for exact match
+        result = cursor.fetchone()
+
+        if result:
+            # Food exists; insert the eaten food into the `eat` table
+            food_name = result[0]
+            insert_query = """
+                INSERT INTO eat (food_name, amount, user_id, date_of_eat)
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor.execute(insert_query, (food_name, amount, user_id, date_of_eat))
+            connection.commit()
+            return 1
+        else:
+            return 0
+    except Exception as e:
+        connection.rollback()
+        return 0
+
+
+def create_food_items(connection, cursor):
+    food_items = pd.read_csv('food_items.csv')
+    for index, row in food_items.iterrows():
+        formatted_date = datetime.strptime(row['date_of_eat'], "%d/%m/%Y").strftime("%Y-%m-%d")
+        result = insert_eaten(row['food'], row['amount'], row['user_id'], formatted_date, connection, cursor)
+
+
 def fill_information():
     connection, cursor = connect_to_db()
-
-    life_stage_group_load(connection, cursor)
-    create_users(connection, cursor)
-    insert_teams(connection, cursor)
-    insert_belong_teams(connection, cursor)
-    load_food_data_big(connection, cursor)
-    convert_scale(connection, cursor)
-    load_food_data_small(connection, cursor)
+    # life_stage_group_load(connection, cursor)
+    # create_users(connection, cursor)
+    # insert_teams(connection, cursor)
+    # insert_belong_teams(connection, cursor)
+    # load_food_data_big(connection, cursor)
+    # convert_scale(connection, cursor)
+    # load_food_data_small(connection, cursor)
+    create_food_items(connection, cursor)
     cursor.close()
     connection.close()
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     os.chdir(r'C:\Users\kashann\PycharmProjects\NutriTrack')
     fill_information()
-
-

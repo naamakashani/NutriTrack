@@ -899,10 +899,10 @@ def trends_window():
         fig, ax = plt.subplots(figsize=(8, 5))
         ax.bar(weeks, gaps, color="skyblue", edgecolor="black")
         ax.set_title(f"Nutrient Gap Trends for {nutrient}", fontsize=10)
-        ax.set_xlabel("Week", fontsize=10)
-        ax.set_ylabel("Nutrient Gap (%)", fontsize=10)
-        ax.set_xticks(weeks)
+        ax.set_ylabel("Nutrient Gap (%)", fontsize=10)  # Keep the y-axis label
         ax.grid(axis="y", linestyle="--", alpha=0.7)
+
+        plt.tight_layout()  # Adjust layout to ensure everything fits
 
         # Embed the matplotlib figure into the Tkinter UI
         canvas = FigureCanvasTkAgg(fig, master=parent_window)
