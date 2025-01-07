@@ -11,16 +11,17 @@ def display_food_for_nutrient(nutrient_name):
     # Create a new window
     new_window = tk.Toplevel()
     new_window.title(f"Food Recommendations for {nutrient_name}")
-    new_window.geometry("500x500")  # Adjust size as needed
+    new_window.geometry("700x500")  # Adjust size as needed
 
     # Get recommendations
     recommendations = recommand_food_for_nutrient(
         nutrient_name)  # Assuming this function returns a list of foods or text
 
     # Add a label to display the nutrient name
+    clear_name= nutrient_name.replace("_", " ")[:-3]
     nutrient_label = tk.Label(
         new_window,
-        text=f"Recommended Foods for {nutrient_name}",
+        text=f"Recommended Foods for {clear_name}",
         font=("Helvetica", 12, "bold")
     )
     nutrient_label.pack(pady=10)
@@ -28,8 +29,19 @@ def display_food_for_nutrient(nutrient_name):
     # Add a text widget or label to display the recommendations
     if recommendations:
         for food in recommendations:
-            food_label = tk.Label(new_window, text=f"- {food}", font=("Helvetica", 10))
-            food_label.pack(anchor="w", padx=20)
+            # Remove unwanted characters like parentheses and single quotes
+            clean_food = str(food).strip("()',")
+            food_label = tk.Label(
+                new_window,
+                text=f"- {clean_food.capitalize()}",  # Capitalize for better readability
+                font=("Helvetica", 8),
+                bg="#f7f9fc"
+            )
+            food_label.pack(anchor="w", padx=20, pady=2)  # Add padding for cleaner look
+
+            # food_label = tk.Label(new_window, text=f"- {food}", font=("Helvetica", 10))
+            # food_label.pack(anchor="w", padx=20)
+
     else:
         no_recommendations_label = tk.Label(
             new_window,
