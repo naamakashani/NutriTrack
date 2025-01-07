@@ -1,8 +1,10 @@
 import pymysql
-import pandas as pd
 import os
 import re
-from datetime import datetime
+import pandas as pd
+from datetime import datetime, timedelta
+import random
+
 
 def connect_to_db():
     # Database connection details
@@ -353,21 +355,38 @@ def insert_eaten(food, amount, user_id, date_of_eat, connection, cursor):
 
 
 def create_food_items(connection, cursor):
-    food_items = pd.read_csv('food_items.csv')
-    for index, row in food_items.iterrows():
-        formatted_date = datetime.strptime(row['date_of_eat'], "%d/%m/%Y").strftime("%Y-%m-%d")
-        result = insert_eaten(row['food'], row['amount'], row['user_id'], formatted_date, connection, cursor)
+    # Define the date range for the last month
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=30)
+
+    date_range = pd.date_range(start=start_date, end=end_date)
+
+    # Generate data for the last month
+    data = {
+        "food": random.choices(
+            ["apple", "banana", "chicken", "salad", "pasta", "rice", "fish", "soup", "steak", "yogurt", "bread", "egg"],
+            k=len(date_range) * 10
+        ),
+        "amount": [random.randint(100, 400) for _ in range(len(date_range) * 10)],
+        "user_id": random.choices([200000001, 200000002, 200000003], k=len(date_range) * 10),
+        "date_of_eat": [date.date() for date in date_range for _ in range(10)]
+    }
+
+    # Create a DataFrame
+    df_last_month = pd.DataFrame(data)
+    for index, row in df_last_month.iterrows():
+        result = insert_eaten(row['food'], row['amount'], row['user_id'], row['date_of_eat'], connection, cursor)
 
 
 def fill_information():
     connection, cursor = connect_to_db()
-    # life_stage_group_load(connection, cursor)
-    # create_users(connection, cursor)
-    # insert_teams(connection, cursor)
-    # insert_belong_teams(connection, cursor)
-    # load_food_data_big(connection, cursor)
-    # convert_scale(connection, cursor)
-    # load_food_data_small(connection, cursor)
+    life_stage_group_load(connection, cursor)
+    create_users(connection, cursor)
+    insert_teams(connection, cursor)
+    insert_belong_teams(connection, cursor)
+    load_food_data_big(connection, cursor)
+    convert_scale(connection, cursor)
+    load_food_data_small(connection, cursor)
     create_food_items(connection, cursor)
     cursor.close()
     connection.close()
