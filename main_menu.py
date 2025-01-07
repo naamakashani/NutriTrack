@@ -900,7 +900,7 @@ def trends_window():
         ax.bar(weeks, gaps, color="skyblue", edgecolor="black")
         ax.set_title(f"Nutrient Gap Trends for {nutrient}", fontsize=10)
         ax.set_xlabel("Week", fontsize=10)
-        ax.set_ylabel("Nutrient Gap", fontsize=10)
+        ax.set_ylabel("Nutrient Gap (%)", fontsize=10)
         ax.set_xticks(weeks)
         ax.grid(axis="y", linestyle="--", alpha=0.7)
 
@@ -932,7 +932,7 @@ def trends_window():
 
         # Create a button for each nutrient
         for nutrient in nutrient_names:
-            custom_font = font.Font(family="Helvetica", size=10)  # Button font
+            custom_font = font.Font(family="Helvetica", size=12)  # Button font
             frame = tk.Frame(nutrient_window, bg="#f7f9fc")
             frame.pack(fill=tk.X, pady=5)
 
@@ -951,10 +951,13 @@ def trends_window():
             button = tk.Button(
                 frame,
                 text="Show Trends",
-                font=custom_font,
+                font=("Helvetica", 8),  # Smaller font
+                width=12,  # Set a smaller width
+                padx=5,  # Reduce horizontal padding
+                pady=2,  # Reduce vertical padding
                 command=lambda n=nutrient: open_trends_window(n, start, end)
             )
-            button.pack(side=tk.RIGHT, padx=10)
+            button.pack(side=tk.RIGHT, padx=5)  # Reduce side padding
 
         # Close button
         ttk.Button(

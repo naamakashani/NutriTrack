@@ -441,7 +441,12 @@ def trends(user_id, start_date, end_date, nutrient):
     # Construct the query safely
     query = f"""
     SELECT
-        AVG((recom_user.{nutrient}) - daily.daily_nutrient) / recom_user.{nutrient} *100) AS nutrient_gap
+        AVG(
+    CASE
+        WHEN (recom_user.{nutrient} - daily.daily_nutrient) / recom_user.{nutrient} * 100 < 0 THEN 0
+        ELSE (recom_user.{nutrient} - daily.daily_nutrient) / recom_user.{nutrient} * 100
+    END
+) AS Avg_Percentage
     FROM 
         (
             SELECT 
