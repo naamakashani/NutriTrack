@@ -330,43 +330,74 @@ def avg_consumption(user_id, period):
     connection, cursor = connect_to_db()
     query = """
     SELECT 
-ROUND(AVG(e.amount * f.Caloric_Value_kcal / 100), 2) AS Avg_Calories,
-ROUND(AVG(e.amount * f.Protein_g / 100), 2) AS Avg_Protein_g,
-ROUND(AVG(e.amount * f.Dietary_Fiber_g / 100), 2) AS Avg_Fiber_g,
-ROUND(AVG(e.amount * f.Cholesterol_mg / 100), 2) AS Avg_Cholesterol_mg,
-ROUND(AVG(e.amount * f.Sodium_g / 100), 2) AS Avg_Sodium_g,
-ROUND(AVG(e.amount * f.Water_g / 100), 2) AS Avg_Water_g,
-ROUND(AVG(e.amount * f.Vitamin_A_mg / 100), 2) AS Avg_Vitamin_A_mg,
-ROUND(AVG(e.amount * f.Thiamin_mg / 100), 2) AS Avg_Thiamin_mg,
-ROUND(AVG(e.amount * f.Folic_Acid_mg / 100), 2) AS Avg_Folic_Acid_mg,
-ROUND(AVG(e.amount * f.Vitamin_B12_mg / 100), 2) AS Avg_Vitamin_B12_mg,
-ROUND(AVG(e.amount * f.Riboflavin_mg / 100), 2) AS Avg_Riboflavin_mg,
-ROUND(AVG(e.amount * f.Niacin_mg / 100), 2) AS Avg_Niacin_mg,
-ROUND(AVG(e.amount * f.Pantothenic_Acid_mg / 100), 2) AS Avg_Pantothenic_Acid_mg,
-ROUND(AVG(e.amount * f.Vitamin_B6_mg / 100), 2) AS Avg_Vitamin_B6_mg,
-ROUND(AVG(e.amount * f.Vitamin_C_mg / 100), 2) AS Avg_Vitamin_C_mg,
-ROUND(AVG(e.amount * f.Vitamin_D_mg / 100), 2) AS Avg_Vitamin_D_mg,
-ROUND(AVG(e.amount * f.Vitamin_E_mg / 100), 2) AS Avg_Vitamin_E_mg,
-ROUND(AVG(e.amount * f.Vitamin_K_mg / 100), 2) AS Avg_Vitamin_K_mg,
-ROUND(AVG(e.amount * f.Calcium_mg / 100), 2) AS Avg_Calcium_mg,
-ROUND(AVG(e.amount * f.Copper_mg / 100), 2) AS Avg_Copper_mg,
-ROUND(AVG(e.amount * f.Iron_mg / 100), 2) AS Avg_Iron_mg,
-ROUND(AVG(e.amount * f.Magnesium_mg / 100), 2) AS Avg_Magnesium_mg,
-ROUND(AVG(e.amount * f.Manganese_mg / 100), 2) AS Avg_Manganese_mg,
-ROUND(AVG(e.amount * f.Phosphorus_mg / 100), 2) AS Avg_Phosphorus_mg,
-ROUND(AVG(e.amount * f.Potassium_mg / 100), 2) AS Avg_Potassium_mg,
-ROUND(AVG(e.amount * f.Selenium_mg / 100), 2) AS Avg_Selenium_mg,
-ROUND(AVG(e.amount * f.Zinc_mg / 100), 2) AS Avg_Zinc_mg
-
-        
-    FROM 
-        eat e
-    JOIN 
-        food f ON e.food_name = f.food_name
-    WHERE 
-        e.user_id = %s 
-        AND e.date_of_eat >= DATE_SUB(NOW(), INTERVAL %s DAY);
+        ROUND(AVG(daily_calories), 2) AS Avg_Calories,
+        ROUND(AVG(daily_protein), 2) AS Avg_Protein_g,
+        ROUND(AVG(daily_fiber), 2) AS Avg_Fiber_g,
+        ROUND(AVG(daily_cholesterol), 2) AS Avg_Cholesterol_mg,
+        ROUND(AVG(daily_sodium), 2) AS Avg_Sodium_g,
+        ROUND(AVG(daily_water), 2) AS Avg_Water_g,
+        ROUND(AVG(daily_vitamin_a), 2) AS Avg_Vitamin_A_mg,
+        ROUND(AVG(daily_thiamin), 2) AS Avg_Thiamin_mg,
+        ROUND(AVG(daily_folic_acid), 2) AS Avg_Folic_Acid_mg,
+        ROUND(AVG(daily_vitamin_b12), 2) AS Avg_Vitamin_B12_mg,
+        ROUND(AVG(daily_riboflavin), 2) AS Avg_Riboflavin_mg,
+        ROUND(AVG(daily_niacin), 2) AS Avg_Niacin_mg,
+        ROUND(AVG(daily_pantothenic_acid), 2) AS Avg_Pantothenic_Acid_mg,
+        ROUND(AVG(daily_vitamin_b6), 2) AS Avg_Vitamin_B6_mg,
+        ROUND(AVG(daily_vitamin_c), 2) AS Avg_Vitamin_C_mg,
+        ROUND(AVG(daily_vitamin_d), 2) AS Avg_Vitamin_D_mg,
+        ROUND(AVG(daily_vitamin_e), 2) AS Avg_Vitamin_E_mg,
+        ROUND(AVG(daily_vitamin_k), 2) AS Avg_Vitamin_K_mg,
+        ROUND(AVG(daily_calcium), 2) AS Avg_Calcium_mg,
+        ROUND(AVG(daily_copper), 2) AS Avg_Copper_mg,
+        ROUND(AVG(daily_iron), 2) AS Avg_Iron_mg,
+        ROUND(AVG(daily_magnesium), 2) AS Avg_Magnesium_mg,
+        ROUND(AVG(daily_manganese), 2) AS Avg_Manganese_mg,
+        ROUND(AVG(daily_phosphorus), 2) AS Avg_Phosphorus_mg,
+        ROUND(AVG(daily_potassium), 2) AS Avg_Potassium_mg,
+        ROUND(AVG(daily_selenium), 2) AS Avg_Selenium_mg,
+        ROUND(AVG(daily_zinc), 2) AS Avg_Zinc_mg
+    FROM (
+        SELECT 
+            SUM(e.amount * f.Caloric_Value_kcal / 100) AS daily_calories,
+            SUM(e.amount * f.Protein_g / 100) AS daily_protein,
+            SUM(e.amount * f.Dietary_Fiber_g / 100) AS daily_fiber,
+            SUM(e.amount * f.Cholesterol_mg / 100) AS daily_cholesterol,
+            SUM(e.amount * f.Sodium_g / 100) AS daily_sodium,
+            SUM(e.amount * f.Water_g / 100) AS daily_water,
+            SUM(e.amount * f.Vitamin_A_mg / 100) AS daily_vitamin_a,
+            SUM(e.amount * f.Thiamin_mg / 100) AS daily_thiamin,
+            SUM(e.amount * f.Folic_Acid_mg / 100) AS daily_folic_acid,
+            SUM(e.amount * f.Vitamin_B12_mg / 100) AS daily_vitamin_b12,
+            SUM(e.amount * f.Riboflavin_mg / 100) AS daily_riboflavin,
+            SUM(e.amount * f.Niacin_mg / 100) AS daily_niacin,
+            SUM(e.amount * f.Pantothenic_Acid_mg / 100) AS daily_pantothenic_acid,
+            SUM(e.amount * f.Vitamin_B6_mg / 100) AS daily_vitamin_b6,
+            SUM(e.amount * f.Vitamin_C_mg / 100) AS daily_vitamin_c,
+            SUM(e.amount * f.Vitamin_D_mg / 100) AS daily_vitamin_d,
+            SUM(e.amount * f.Vitamin_E_mg / 100) AS daily_vitamin_e,
+            SUM(e.amount * f.Vitamin_K_mg / 100) AS daily_vitamin_k,
+            SUM(e.amount * f.Calcium_mg / 100) AS daily_calcium,
+            SUM(e.amount * f.Copper_mg / 100) AS daily_copper,
+            SUM(e.amount * f.Iron_mg / 100) AS daily_iron,
+            SUM(e.amount * f.Magnesium_mg / 100) AS daily_magnesium,
+            SUM(e.amount * f.Manganese_mg / 100) AS daily_manganese,
+            SUM(e.amount * f.Phosphorus_mg / 100) AS daily_phosphorus,
+            SUM(e.amount * f.Potassium_mg / 100) AS daily_potassium,
+            SUM(e.amount * f.Selenium_mg / 100) AS daily_selenium,
+            SUM(e.amount * f.Zinc_mg / 100) AS daily_zinc
+        FROM 
+            eat e
+        JOIN 
+            food f ON e.food_name = f.food_name
+        WHERE 
+            e.user_id = %s
+            AND e.date_of_eat >= DATE_SUB(NOW(), INTERVAL %s DAY)
+        GROUP BY 
+            DATE(e.date_of_eat)
+    ) AS daily_consumption;
     """
+
     cursor.execute(query, (user_id, period))
     consumption = cursor.fetchone()
     return consumption
