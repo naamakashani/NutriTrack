@@ -10,7 +10,7 @@ def connect_to_db():
     # Database connection details
     host = 'localhost'
     user = 'root'
-    password = 'Nn021099!'
+    password = 'shachar100'
     database = 'food_recommandation'
     # Connect to the database
     try:
@@ -20,7 +20,7 @@ def connect_to_db():
         print("Connected to the database")
         return connection, cursor
     except Exception as e:
-        print("An error occurred when connecting to the database:")
+        print("An error occurred when connecting to the database:", e)
         return None, None
 
 
@@ -58,7 +58,7 @@ def life_stage_group_load(connection, cursor):
         connection.commit()
         print("life_stage_group_load inserted successfully.")
     except Exception as e:
-        print("An error occurred while inserting life_stage_group_load")
+        print("An error occurred while inserting life_stage_group_load", e)
         connection.rollback()  # Rollback in case of error
 
 
@@ -158,14 +158,14 @@ def create_users(connection, cursor):
         print("Users created successfully")
 
     except Exception as e:
-        print("An error occurred when inserting users")
+        print("An error occurred when inserting users", e)
         connection.rollback()
 
 
 def insert_belong_teams(connection, cursor):
     groups = [
         (1, 100000001), (1, 100000002), (1, 100000003), (2, 100000004), (2, 100000006),
-        (3, 100000007), (7,200000001), (7,200000002), (7,200000003)
+        (3, 100000007), (7, 200000001), (7, 200000002), (7, 200000003)
     ]
     # Prepare the SQL query with placeholders
     insert_query = "INSERT INTO belong_team (team_id, user_id) VALUES (%s, %s)"
@@ -177,7 +177,7 @@ def insert_belong_teams(connection, cursor):
 
         print("Users assigned to groups successfully")
     except Exception as e:
-        print("An error occurred: when users assigned to groups")
+        print("An error occurred: when users assigned to groups", e)
         connection.rollback()
 
 
@@ -218,7 +218,7 @@ def load_food_data_big(connection, cursor):
         connection.commit()
         print("Rows with NULL food_name deleted successfully.")
     except Exception as e:
-        print("An error occured while inserting the big data")
+        print("An error occured while inserting the big data", e)
         connection.rollback()  # Rollback in case of error
 
 
@@ -266,7 +266,7 @@ def convert_scale(connection, cursor):
         print("Data scale conversion completed successfully.")
 
     except Exception as e:
-        print("An error occurred: when converting the scale")
+        print("An error occurred: when converting the scale", e)
         connection.rollback()
 
 
@@ -323,7 +323,7 @@ def load_food_data_small(connection, cursor):
         connection.commit()
         print("Data small inserted successfully.")
     except Exception as e:
-        print("An error occurred: when inserting the small data")
+        print("An error occurred: when inserting the small data", e)
         connection.rollback()  # Rollback in case of error
 
 
@@ -357,7 +357,7 @@ def insert_eaten(food, amount, user_id, date_of_eat, connection, cursor):
 def create_food_items(connection, cursor):
     # Define the date range for the last month
     end_date = datetime.now()
-    start_date = end_date - timedelta(days=60)
+    start_date = end_date - timedelta(days=90)
 
     date_range = pd.date_range(start=start_date, end=end_date)
 
@@ -404,5 +404,5 @@ def fill_information():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    os.chdir(r'C:\Users\kashann\PycharmProjects\NutriTrack')
+    # os.chdir(r'C:\Users\kashann\PycharmProjects\NutriTrack')
     fill_information()

@@ -1,10 +1,14 @@
 from datetime import datetime
-from fun_names import *
+from sql_queries import *
 from tkinter import font
 import tkinter as tk
-from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
+import numpy as np
+from tkinter import ttk, messagebox
+from tkcalendar import Calendar
+from AutocompleteEntry import AutocompleteEntry
+import sys
 
 
 def display_food_for_nutrient(nutrient_name):
@@ -18,7 +22,7 @@ def display_food_for_nutrient(nutrient_name):
         nutrient_name)  # Assuming this function returns a list of foods or text
 
     # Add a label to display the nutrient name
-    clear_name= nutrient_name.replace("_", " ")[:-3]
+    clear_name = nutrient_name.replace("_", " ")[:-3]
     nutrient_label = tk.Label(
         new_window,
         text=f"Recommended Foods for {clear_name}",
@@ -192,7 +196,7 @@ def is_valid_date(date):
 def daily_gap_window():
     def submit_date():
         # Get the date from the entry field
-        date = date_entry.get()
+        date = date_entry.get_date()
 
         if not date:
             messagebox.showerror("Error", "Please enter a date!")
@@ -219,62 +223,111 @@ def daily_gap_window():
     # Create the daily gap window
     gap_window = tk.Toplevel()
     gap_window.title("Daily Gap")
-    gap_window.geometry("300x200")
+    gap_window.geometry("300x500")
     gap_window.configure(bg="#f7f9fc")
 
     # Title label
     tk.Label(gap_window, text="Enter Date", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=10)
 
     # Date entry field
-    ttk.Label(gap_window, text="Date (YYYY-MM-DD):").pack(pady=5)
-    date_entry = ttk.Entry(gap_window, width=30)
-    date_entry.pack(pady=5)
+    ttk.Label(gap_window, text="Date:").pack(pady=5)
+    # date_entry = ttk.Entry(gap_window, width=30)
+    # date_entry.pack(pady=5)
+    date_entry = Calendar(gap_window, selectmode='day', date_pattern='yyyy-mm-dd', background='green')  # Set the date format
+    date_entry.pack(pady=10)
 
     # Submit button
     ttk.Button(gap_window, text="Submit", command=submit_date).pack(pady=20)
 
 
+# def insert_eaten_window():
+#     def submit_food():
+#         food_name = food_entry.get()
+#         amount = amount_entry.get()
+#         date = date_entry.get_date()
+#         # check that the date is valid format
+#         if not is_valid_date(date):
+#             messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.")
+#             return
+#         # check that the amount is valid number
+#         if not amount.isdigit():
+#             messagebox.showerror("Error", "Amount should be a number!")
+#             return
+#         flag = insert_eaten(food_name, amount, shared.user_id, date)
+#         if flag:
+#             messagebox.showinfo("Success", f"Food '{food_name}' added with amount {amount} g!")
+#         else:
+#             messagebox.showerror("Error", f"Food '{food_name}' not found in the database!")
+#         food_entry.delete(0, tk.END)
+#         amount_entry.delete(0, tk.END)
+#         date_entry.delete(0, tk.END)
+#         food_window.destroy()
+#
+#     food_window = tk.Toplevel()
+#     food_window.title("Insert Eaten Food")
+#     food_window.geometry("400x600")
+#     food_window.configure(bg="#f7f9fc")
+#
+#     tk.Label(food_window, text="Insert Eaten Food", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+#     ttk.Label(food_window, text="Food Name:").pack(pady=5)
+#     food_entry = ttk.Entry(food_window, width=30)
+#     food_entry.pack(pady=5)
+#
+#     ttk.Label(food_window, text="Amount (in g):").pack(pady=5)
+#     amount_entry = ttk.Entry(food_window, width=30)
+#     amount_entry.pack(pady=5)
+#
+#     # Date entry field
+#     ttk.Label(food_window, text="Date:").pack(pady=5)
+#     # date_entry = ttk.Entry(food_window, width=30)
+#     # date_entry.pack(pady=5)
+#     date_entry = Calendar(food_window, selectmode='day', date_pattern='yyyy-mm-dd', background='green')  # Set the date format
+#     date_entry.pack(pady=10)
+#
+#     ttk.Button(food_window, text="Submit", command=submit_food).pack(pady=20)
 def insert_eaten_window():
     def submit_food():
-        food_name = food_entry.get()
+        food_name = food_entry.var.get()
         amount = amount_entry.get()
-        date = date_entry.get()
-        # check that the date is valid format
+        date = date_entry.get_date()
+
         if not is_valid_date(date):
             messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.")
             return
-        # check that the amount is valid number
         if not amount.isdigit():
             messagebox.showerror("Error", "Amount should be a number!")
             return
+
         flag = insert_eaten(food_name, amount, shared.user_id, date)
         if flag:
             messagebox.showinfo("Success", f"Food '{food_name}' added with amount {amount} g!")
         else:
             messagebox.showerror("Error", f"Food '{food_name}' not found in the database!")
-        food_entry.delete(0, tk.END)
+        food_entry.var.set("")
         amount_entry.delete(0, tk.END)
-        date_entry.delete(0, tk.END)
+        #date_entry.delete(0, tk.END)
         food_window.destroy()
 
     food_window = tk.Toplevel()
     food_window.title("Insert Eaten Food")
-    food_window.geometry("400x400")
+    food_window.geometry("400x600")
     food_window.configure(bg="#f7f9fc")
 
     tk.Label(food_window, text="Insert Eaten Food", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
     ttk.Label(food_window, text="Food Name:").pack(pady=5)
-    food_entry = ttk.Entry(food_window, width=30)
+
+    # Get food list for autocomplete
+    food_list = get_all_food_names()
+    food_entry = AutocompleteEntry(food_window, food_list, width=30)
     food_entry.pack(pady=5)
 
     ttk.Label(food_window, text="Amount (in g):").pack(pady=5)
     amount_entry = ttk.Entry(food_window, width=30)
     amount_entry.pack(pady=5)
 
-    # Date entry field
-    ttk.Label(food_window, text="Date (YYYY-MM-DD):").pack(pady=5)
-    date_entry = ttk.Entry(food_window, width=30)
-    date_entry.pack(pady=5)
+    ttk.Label(food_window, text="Date:").pack(pady=5)
+    date_entry = Calendar(food_window, selectmode='day', date_pattern='yyyy-mm-dd', background='green')
+    date_entry.pack(pady=10)
 
     ttk.Button(food_window, text="Submit", command=submit_food).pack(pady=20)
 
@@ -671,7 +724,7 @@ def join_team_window():
         return
 
     # Create the main window
-    root = tk.Tk()
+    root = tk.Toplevel()
     root.title("Choose Groups to Join")
 
     # Create a title label
@@ -724,7 +777,7 @@ def join_team_window():
     submit_button.pack(pady=10)
 
     # Run the main loop
-    root.mainloop()
+    #root.mainloop()
 
 
 def show_teams():
@@ -737,7 +790,7 @@ def show_teams():
         return
 
     # Create the main window
-    root = tk.Tk()
+    root = tk.Toplevel()
     root.title("My Teams")
 
     # Create a title label
@@ -772,7 +825,7 @@ def show_teams():
     inner_frame.bind("<Configure>", on_frame_configure)
 
     # Run the main loop
-    root.mainloop()
+    #root.mainloop()
 
 
 def leave_team_window():
@@ -785,7 +838,7 @@ def leave_team_window():
         return
 
     # Create the window
-    root = tk.Tk()
+    root = tk.Toplevel()
     root.title("Leave Team")
     root.geometry("400x400")
 
@@ -805,7 +858,7 @@ def leave_team_window():
     def on_team_selected(event):
         # Display the currently selected team
         selected_team_label.config(text=f"Selected Team: {team_dropdown.get()}")
-        print(f"Team selected: {team_dropdown.get()}")  # Debugging: Check selected value
+        # print(f"Team selected: {team_dropdown.get()}")  # Debugging: Check selected value
 
     team_dropdown.bind("<<ComboboxSelected>>", on_team_selected)
 
@@ -831,7 +884,7 @@ def leave_team_window():
     submit_button.pack(pady=20)
 
     # Run the main loop
-    root.mainloop()
+    #root.mainloop()
 
 
 def create_team_window():
@@ -867,7 +920,7 @@ def create_team_window():
 
 
 def trends_window():
-    def plot_nutrient_trends_ui(results, nutrient, parent_window):
+    def plot_nutrient_trends_ui(results, nutrient):
         """
         Displays the nutrient gap trends in a histogram format within the UI.
 
@@ -877,16 +930,18 @@ def trends_window():
             parent_window (tk.Toplevel): The parent window where the results will be displayed.
         """
         # Clear existing content in parent window
-        for widget in parent_window.winfo_children():
-            widget.destroy()
+        # for widget in parent_window.winfo_children():
+        #     widget.destroy()
+        #parent_window.destroy()
+        plot_window = tk.Toplevel()
 
         # Set larger window size
-        parent_window.geometry("800x600")
+        plot_window.geometry("800x600")
 
         # Add a title
         tk.Label(
-            parent_window,
-            text=f"Weekly Nutrient Gap Trends for {nutrient}",
+            plot_window,
+            text=f"Weekly Nutrient Gap Trends for {nutrient}, Lower is Better!",
             font=("Helvetica", 10),
             bg="#f7f9fc"
         ).pack(pady=10)
@@ -898,35 +953,42 @@ def trends_window():
         # Create a matplotlib figure
         fig, ax = plt.subplots(figsize=(8, 5))
         ax.bar(weeks, gaps, color="skyblue", edgecolor="black")
-        ax.set_title(f"Nutrient Gap Trends for {nutrient}", fontsize=10)
+        #ax.set_title(f"Nutrient Gap Trends for {nutrient}, Lower is Better!", fontsize=10)
         ax.set_ylabel("Nutrient Gap (%)", fontsize=10)  # Keep the y-axis label
         ax.set_xlabel("Week", fontsize=10)  # X-axis label
         ax.grid(axis="y", linestyle="--", alpha=0.7)
 
-        plt.tight_layout()  # Adjust layout to ensure everything fits
-
+        # plt.tight_layout()  # Adjust layout to ensure everything fits
+        #
         # Embed the matplotlib figure into the Tkinter UI
-        canvas = FigureCanvasTkAgg(fig, master=parent_window)
+        canvas = FigureCanvasTkAgg(fig, master=plot_window)
         canvas_widget = canvas.get_tk_widget()
         canvas_widget.pack(pady=10, padx=20, fill=tk.BOTH, expand=True)
         canvas.draw()
 
+        def on_close():
+            print("Closing window...")
+            plt.close(fig)
+            plot_window.destroy()
         # Add a "Close" button
         ttk.Button(
-            parent_window,
+            plot_window,
             text="Close",
-            command=parent_window.destroy
+            command=on_close
         ).pack(pady=20)
+        plot_window.protocol("WM_DELETE_WINDOW", on_close)
+        #plot_window.mainloop()
 
     def show_trends():
-        start = start_date.get()
-        end = end_date.get()
+        start = start_date.get_date()
+        end = end_date.get_date()
         if not is_valid_date(start) or not is_valid_date(end):
             messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.")
             return
 
         # Create a new window for nutrient buttons
-        nutrient_window = tk.Toplevel(trends_window)
+        #trends_date_window.destroy()
+        nutrient_window = tk.Toplevel()
         nutrient_window.title("Nutrient Trends")
         nutrient_window.geometry("400x600")
         nutrient_window.configure(bg="#f7f9fc")
@@ -956,7 +1018,7 @@ def trends_window():
                 width=12,  # Set a smaller width
                 padx=5,  # Reduce horizontal padding
                 pady=2,  # Reduce vertical padding
-                command=lambda n=nutrient: open_trends_window(n, start, end)
+                command=lambda n=nutrient: open_trends_window(nutrient_window, n, start, end)
             )
             button.pack(side=tk.RIGHT, padx=5)  # Reduce side padding
 
@@ -967,16 +1029,17 @@ def trends_window():
             command=nutrient_window.destroy
         ).pack(pady=20)
 
-    def open_trends_window(nutrient, start, end):
+    def open_trends_window(nutrient_window, nutrient, start, end):
         results = trends(shared.user_id, start, end, nutrient)
+        #nutrient_window.destroy()
         if not results:
             messagebox.showinfo("Trends", f"No data available for {nutrient} in the selected date range.")
         else:
-            trends_window = tk.Toplevel()
-            trends_window.title(f"Trends for {nutrient}")
-            trends_window.geometry("400x400")
-            trends_window.configure(bg="#f7f9fc")
-            plot_nutrient_trends_ui(results, nutrient, trends_window)
+            # show_trends_window = tk.Toplevel()
+            # show_trends_window.title(f"Trends for {nutrient}")
+            # show_trends_window.geometry("400x400")
+            # show_trends_window.configure(bg="#f7f9fc")
+            plot_nutrient_trends_ui(results, nutrient)
 
     # Nutrient names
     nutrient_names = [
@@ -986,33 +1049,223 @@ def trends_window():
     ]
 
     # Main window setup
-    trends_window = tk.Tk()
-    trends_window.title("Trends")
-    trends_window.geometry("500x400")
-    trends_window.configure(bg="#f7f9fc")
+    trends_date_window = tk.Toplevel()
+    trends_date_window.title("Trends")
+    trends_date_window.geometry("500x700")
+    trends_date_window.configure(bg="#f7f9fc")
 
-    tk.Label(trends_window, text="Insert Start Date (YYYY-MM-DD)", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
-    ttk.Label(trends_window, text="Start Date:").pack(pady=5)
-    start_date = ttk.Entry(trends_window, width=30)
-    start_date.pack(pady=5)
+    # tk.Label(trends_date_window, text="Insert Start Date (YYYY-MM-DD)", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    # ttk.Label(trends_date_window, text="Start Date:").pack(pady=5)
+    # start_date = ttk.Entry(trends_date_window, width=30)
+    # start_date.pack(pady=5)
+    #
+    # tk.Label(trends_date_window, text="Insert End Date (YYYY-MM-DD)", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    # ttk.Label(trends_date_window, text="End Date:").pack(pady=5)
+    # end_date = ttk.Entry(trends_date_window, width=30)
+    # end_date.pack(pady=5)
 
-    tk.Label(trends_window, text="Insert End Date (YYYY-MM-DD)", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
-    ttk.Label(trends_window, text="End Date:").pack(pady=5)
-    end_date = ttk.Entry(trends_window, width=30)
-    end_date.pack(pady=5)
+    # Add calendar for start date selection
+    tk.Label(trends_date_window, text="Select Start Date", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    start_date = Calendar(trends_date_window, selectmode='day', date_pattern='yyyy-mm-dd', background='green')  # Set the date format
+    start_date.pack(pady=10)
 
-    submit_button = ttk.Button(trends_window, text="Show Trends", command=show_trends)
+    # Add calendar for end date selection
+    tk.Label(trends_date_window, text="Select End Date", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    end_date = Calendar(trends_date_window, selectmode='day', date_pattern='yyyy-mm-dd', background='green')  # Set the date format
+    end_date.pack(pady=10)
+
+    submit_button = ttk.Button(trends_date_window, text="Show Trends", command=show_trends)
     submit_button.pack(pady=20)
 
-    trends_window.mainloop()
+    #trends_date_window.mainloop()
+
+
+def check_violate_users(team_id, start_date, end_date):
+    """
+    Check for users with incomplete data and ask the user for the next action.
+    :param team_id:
+    :param start_date:
+    :param end_date:
+    :return: True if the user wants to remove the violating users, False if the user wants to enter another date range,
+    """
+    violating_users = violate_users_of_team(team_id, start_date, end_date)
+    violating_user_ids = [user[0] for user in violating_users]  # Extract user IDs
+
+    if violating_user_ids:
+        user_list = "\n".join([f"- {user[1]}" for user in violating_users])  # Create a list of usernames
+        # Ask the user for the next action
+        response = messagebox.askyesnocancel(
+            "Users with Incomplete Data Detected",
+            f"The following users have days without recorded meal data between {start_date} and {end_date}:\n\n"
+            f"{user_list}\n\n"
+            "Would you like to remove these users from the team?\n\n"
+            "Yes: Remove users\n"
+            "No: Exit\n"
+        )
+        if response is True:  # User clicked 'Yes'
+            leave_team_list_of_users(violating_user_ids, team_id)
+            return True
+        else:
+            return False
+    return True
 
 
 def comparison_window():
-    messagebox.showinfo("Comparison", "Team Comparison feature is under development.")
+    def show_competition_results():
+        start = start_date.get_date()
+        end = end_date.get_date()
+        team_name = team_dropdown.get()
+        # Find the corresponding team ID
+        team_id = next((team[0] for team in teams if team[1] == team_name), None)
+        if not check_violate_users(team_id, start, end):
+            date_window.destroy()
+            return
+        results = comparison_team(team_id, start,
+                                  end)  # return for every user the average daily gap for each nutrient
+        winners_data = winner_in_team_comparison(team_id, start, end)  # return the winner user - the user that
+        # has the lowest average daily gap for the highest number of nutrients. if there is a tie, return list of users
+        date_window.destroy()  # Close the current window
+
+        if not results:
+            messagebox.showinfo("Team Competition", f"No data available in the selected date range.")
+        else:
+            # Create a new window for trends
+            #date_window.destroy() # Close the current window
+            perf_window = tk.Toplevel()
+            perf_window.title("Team Performance")
+            perf_window.geometry("1000x4000")  # Adjust the size of the window
+            perf_window.configure(bg="#f7f9fc")
+            plot_competitive_nutrient_comparison(results, winners_data, perf_window)
+
+    # Main window setup
+    date_window = tk.Toplevel()
+    date_window.title("Team Competition")
+    date_window.geometry("600x1000")
+    date_window.configure(bg="#f7f9fc")
+
+    user_id = shared.user_id  # Assuming `shared.user_id` stores the current user ID
+    teams = get_teams_for_user(user_id)
+
+    if not teams:
+        messagebox.showinfo("Team Competition", "You are not part of any team.")
+        return
+
+    # Add a dropdown menu for team selection
+    tk.Label(date_window, text="Select a Team", font=("Helvetica", 16), bg="#f7f9fc").pack(
+        pady=20)
+    team_dropdown = ttk.Combobox(date_window, state="readonly", width=30)
+    team_dropdown['values'] = [team_name for _, team_name in teams]  # Populate dropdown with team names
+    team_dropdown.pack(pady=10)
+
+    # tk.Label(date_window, text="Insert Competition Start Date (YYYY-MM-DD)", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    # ttk.Label(date_window, text="Start Date:").pack(pady=5)
+    # start_date = ttk.Entry(date_window, width=30)
+    # start_date.pack(pady=5)
+    #
+    # tk.Label(date_window, text="Insert Competition End Date (YYYY-MM-DD)", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    # ttk.Label(date_window, text="End Date:").pack(pady=5)
+    # end_date = ttk.Entry(date_window, width=30)
+    # end_date.pack(pady=5)
+
+    # Add calendar for start date selection
+    tk.Label(date_window, text="Select Competition Start Date", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    start_date = Calendar(date_window, selectmode='day', date_pattern='yyyy-mm-dd', background='green')  # Set the date format
+    start_date.pack(pady=10)
+
+    # Add calendar for end date selection
+    tk.Label(date_window, text="Select Competition End Date", font=("Helvetica", 16), bg="#f7f9fc").pack(pady=20)
+    end_date = Calendar(date_window, selectmode='day', date_pattern='yyyy-mm-dd', background='green')  # Set the date format
+    end_date.pack(pady=10)
+
+    # Create a style for the button
+    style = ttk.Style()
+    style.configure(
+        "Big.TButton",  # Custom style name
+        font=("Helvetica", 20),  # Larger font size
+        padding=10  # Extra padding to make the button bigger
+    )
+    submit_button = ttk.Button(date_window, text="Show Team Performance!", style="Big.TButton",
+                               command=show_competition_results)
+    submit_button.pack(pady=20)
+
+    #date_window.mainloop()
+
+
+def plot_competitive_nutrient_comparison(results, winners_results, parent_window):
+    # Clear existing content in parent window
+    for widget in parent_window.winfo_children():
+        widget.destroy()
+
+    # Add a title
+    tk.Label(
+        parent_window,
+        text=f"Team Performance",
+        font=("Helvetica", 10),
+        bg="#f7f9fc"
+    ).pack(pady=10)
+
+    # Display winners' information
+    winner_text = "Winners!!! " + ", ".join([f"{row[1]} ({row[0]})" for row in winners_results])
+    tk.Label(
+        parent_window,
+        text=winner_text,
+        font=("Helvetica", 20),
+        bg="#f7f9fc",
+        fg="#ed0070"  # Use a distinct color for the winners
+    ).pack(pady=10)
+    #parent_window.geometry("3000x8000")  # Adjust the size of the window
+    parent_window.attributes('-fullscreen', True)
+
+    # Unpack data
+    user_ids = [row[0] for row in results]  # Extract user IDs
+    avg_gaps = np.array([row[1:] for row in results])  # Extract nutrient gaps
+
+    nutrients = ['Vitamin A', 'Vitamin C', 'Vitamin D', 'Vitamin E', 'Vitamin K', 'Thiamin', 'Riboflavin', 'Niacin', 'Vitamin B6', 'Vitamin B12', 'Pantothenic acid']
+    x = np.arange(len(nutrients))  # X-axis positions for nutrients
+    width = 0.2  # Width of each bar
+    offsets = np.arange(-len(user_ids) // 2 * width, len(user_ids) // 2 * width, width)
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(40, 6))
+    for i, user_id in enumerate(user_ids):
+        ax.bar(x + offsets[i], avg_gaps[i], width, label=f'{user_id}')
+
+    # Add labels, title, and legend
+    ax.set_xlabel('Nutrients', fontsize=12)
+    ax.set_ylabel('Average Daily Gap (%)', fontsize=12)
+    ax.set_title('Nutrient Gap Comparison by User: Lower is Better!', fontsize=14, pad=20)
+    ax.set_xticks(x)
+    ax.set_xticklabels(nutrients)
+    ax.legend(title="Users")
+
+    # Annotate values above bars
+    for i, user_gap in enumerate(avg_gaps):
+        for j, gap in enumerate(user_gap):
+            ax.text(j + offsets[i], gap + 1, f'{gap:.1f}%', ha='center', fontsize=8, rotation=45)
+
+    plt.tight_layout()
+
+    # Embed the matplotlib figure into the Tkinter UI
+    canvas = FigureCanvasTkAgg(fig, master=parent_window)
+    canvas_widget = canvas.get_tk_widget()
+    canvas_widget.pack(pady=10, padx=20, fill=tk.BOTH, expand=True)
+    canvas.draw()
+
+    def on_close():
+        plt.close(fig)
+        parent_window.destroy()
+    # Add a "Close" button
+    ttk.Button(
+        parent_window,
+        text="Close",
+        command=on_close
+    ).pack(pady=3)
+    parent_window.protocol("WM_DELETE_WINDOW", on_close)
 
 
 # Open the main menu
 def open_main_menu():
+    shared.root.destroy()
     main_menu = tk.Tk()
     main_menu.title("Nutrition Tracker - Main Menu")
     main_menu.geometry("600x800")
@@ -1034,4 +1287,22 @@ def open_main_menu():
     ttk.Button(main_menu, text="Show My Teams", command=show_teams, width=25).pack(pady=10)
     ttk.Button(main_menu, text="Create New Team", command=create_team_window, width=25).pack(pady=10)
 
-    main_menu.mainloop()
+    # Close window event handler to terminate the program
+    # def on_closing():
+    #     try:
+    #         shared.root.quit()  # Exit the Tkinter main loop
+    #         shared.root.quit()
+    #         shared.root.quit()
+    #         shared.root.quit()
+    #         shared.root.quit()
+    #         shared.root.quit()
+    #         shared.root.quit()
+    #         shared.root.quit()
+    #     except Exception as e:
+    #         print(f"Error during closing: {e}")
+    #     # finally:
+    #     #     sys.exit(0)  # Ensure the program fully terminates
+    #
+    # main_menu.protocol("WM_DELETE_WINDOW", on_closing)  # Handle window close (X) event
+    #main_menu.mainloop()
+

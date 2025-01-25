@@ -4,7 +4,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk  # For handling the logo image
 from login_windows import sign_in, log_in
 import shared
-from fun_names import connect_to_db
+from sql_queries import connect_to_db
 
 # Opening window
 def open_app():
@@ -14,7 +14,7 @@ def open_app():
     shared.root.configure(bg="#d6eefc")
 
     # Load and display the logo image
-    logo_image = Image.open(r'C:\Users\kashann\PycharmProjects\NutriTrack\image.png')  # Replace with the uploaded logo file path
+    logo_image = Image.open(r'.\image.png')  # Replace with the uploaded logo file path
     # target size
     target_width = 200
     # Calculate proportional height based on original dimensions

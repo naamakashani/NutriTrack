@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from fun_names import *
+from sql_queries import *
 from main_menu import open_main_menu
 import shared
 
@@ -105,9 +105,8 @@ def log_in():
             messagebox.showerror("Error", "User ID is required!")
         else:
             if check_user_exists(user_id) != 0:
-                messagebox.showinfo("Success", f"Welcome back! User ID: {user_id}")
+                messagebox.showinfo("Success", f"Welcome back {get_username_from_id(user_id)}!")
                 log_in_window.destroy()  # Close the login window
-                shared.root.destroy()
                 shared.user_id = user_id
                 open_main_menu()  # Open the main menu
             else:
