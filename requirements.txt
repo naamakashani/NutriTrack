@@ -1,0 +1,6 @@
+pandas~=2.2.2
+PyMySQL~=1.1.1
+matplotlib~=3.8.2
+numpy~=1.26.3
+tkcalendar~=1.6.1
+pillow~=10.2.0

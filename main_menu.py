@@ -939,22 +939,29 @@ def trends_window():
         plot_window.geometry("800x600")
 
         # Add a title
+        # tk.Label(
+        #     plot_window,
+        #     text=f"Weekly Nutrient Gap Trends for {nutrient}, Lower is Better!",
+        #     font=("Helvetica", 10),
+        #     bg="#f7f9fc"
+        # ).pack(pady=10)
         tk.Label(
             plot_window,
-            text=f"Weekly Nutrient Gap Trends for {nutrient}, Lower is Better!",
+            text=f"Weekly {nutrient} Consumption Rate, Higher is Better!",
             font=("Helvetica", 10),
             bg="#f7f9fc"
         ).pack(pady=10)
 
         # Prepare the data for plotting
         weeks = list(range(1, len(results) + 1))
-        gaps = [result[0] for result in results]
+        #gaps = [result[0] for result in results]
+        gaps = [100 - result[0] for result in results]
 
         # Create a matplotlib figure
         fig, ax = plt.subplots(figsize=(8, 5))
         ax.bar(weeks, gaps, color="skyblue", edgecolor="black")
         #ax.set_title(f"Nutrient Gap Trends for {nutrient}, Lower is Better!", fontsize=10)
-        ax.set_ylabel("Nutrient Gap (%)", fontsize=10)  # Keep the y-axis label
+        ax.set_ylabel("Consumption Rate (%)", fontsize=10)  # Keep the y-axis label
         ax.set_xlabel("Week", fontsize=10)  # X-axis label
         ax.grid(axis="y", linestyle="--", alpha=0.7)
 
@@ -967,7 +974,7 @@ def trends_window():
         canvas.draw()
 
         def on_close():
-            print("Closing window...")
+            #print("Closing window...")
             plt.close(fig)
             plot_window.destroy()
         # Add a "Close" button
@@ -1232,8 +1239,10 @@ def plot_competitive_nutrient_comparison(results, winners_results, parent_window
 
     # Add labels, title, and legend
     ax.set_xlabel('Nutrients', fontsize=12)
-    ax.set_ylabel('Average Daily Gap (%)', fontsize=12)
-    ax.set_title('Nutrient Gap Comparison by User: Lower is Better!', fontsize=14, pad=20)
+    #ax.set_ylabel('Average Daily Gap (%)', fontsize=12)
+    ax.set_ylabel('Average Daily Intake (%)', fontsize=12)
+    #ax.set_title('Nutrient Gap Comparison by User: Lower is Better!', fontsize=14, pad=20)
+    ax.set_title('Nutrient Intake Comparison by User: Higher is Better!', fontsize=14, pad=20)
     ax.set_xticks(x)
     ax.set_xticklabels(nutrients)
     ax.legend(title="Users")
@@ -1241,6 +1250,7 @@ def plot_competitive_nutrient_comparison(results, winners_results, parent_window
     # Annotate values above bars
     for i, user_gap in enumerate(avg_gaps):
         for j, gap in enumerate(user_gap):
+            gap = 100 - gap  # Convert gap to intake
             ax.text(j + offsets[i], gap + 1, f'{gap:.1f}%', ha='center', fontsize=8, rotation=45)
 
     plt.tight_layout()
